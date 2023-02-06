@@ -1,8 +1,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 -- import Debug.Trace
 import Numeric.Natural
+
 import Data.Map (Map)
 import qualified Data.Map as M
+
+import Data.List (delete, inits)
 
 choose :: Eq a => Natural -> [a] -> [[a]]
 choose n xs
@@ -105,3 +108,44 @@ nthFactoryRotor s =
   in M.fromList
       $ zip alph
       $ (\x -> zip x x) (nthPermutation s alph)
+
+type Level = Int
+type Obj   = Natural
+type Exc = [Obj]
+type State = [Obj]
+
+data PTree = Fst Obj [PTree]
+           | Snd Obj [PTree]
+           | Nil
+  deriving Show
+
+data Switch = R | F | S
+  deriving Show
+
+-- This function builds up a tree of all possible pairing combinations
+-- given a list of even length. The point is to model non-deterministic
+-- choice out of many possibilities, by choosing only one specific
+-- branch of a tree, which is possible due to lazy evaluation model
+-- The total amount of possible pairs is computed as:
+-- "n! / 2*(n-2)!" where n is the length of an input list
+pairTree :: [Obj] -> PTree
+pairTree []     = Nil
+pairTree (x:xs) = aux [] R x 0 xs
+  where
+    aux :: Exc -> Switch -> Obj -> Level -> [Obj] -> PTree
+    aux _ S o l [] = Snd o []
+    aux _ _ _ _ [] = Nil
+    aux _ R o l xs =
+      Fst o $ nodes S l $ noExclusion xs
+    aux es F o l xs =
+      let xs' = exclude es xs
+      in if (es == xs)
+         then Nil
+         else Fst o $ nodes S l $ noExclusion xs
+    aux _ S o l xs =
+      let es = inits xs
+      in Snd o $ nodes F l $ zip es xs
+
+    noExclusion  = zip (repeat [])
+    exclude es   = filter (not . (`elem` es))
+    nodes s l xs = [aux e s x (l+1) (delete x (snd $ unzip xs)) | (e, x) <- xs]
