@@ -1,6 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 -- import Debug.Trace
 import Numeric.Natural
+import Data.Tuple (swap)
 
 import Data.Map (Map)
 import qualified Data.Map as M
@@ -193,5 +194,11 @@ getNthPairCombination os i =
       in (a,b) : aux is tr''
 
 type Pin = Natural
-getReflectorBySerialNumber :: SerialNumber -> [(Pin,Pin)]
-getReflectorBySerialNumber s = getNthPairCombination enumedPins s
+type Reflector = Map Pin Pin
+
+getReflectorBySerialNumber :: SerialNumber -> Reflector
+getReflectorBySerialNumber s =
+  let ps = getNthPairCombination enumedPins s
+  in foldr (\p acc -> insert (swap p) (insert p acc)) M.empty ps
+  where
+    insert p = uncurry M.insert p
