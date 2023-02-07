@@ -7,6 +7,8 @@ import qualified Data.Map as M
 
 import Data.List (delete, inits)
 
+import Control.Monad (guard)
+
 choose :: Eq a => Natural -> [a] -> [[a]]
 choose n xs
   | n <= 0 = return []
@@ -50,9 +52,9 @@ permute ns = do
 --      |          |          |
 --      3rd        4th        5th
 
-type ListIndex = Integer
-type ListSize = Integer
-type NthPerm = Integer
+type ListIndex = Natural
+type ListSize = Natural
+type NthPerm = Natural
 
 
 -- nthPermutation function can be used to represent the factory issued
@@ -69,10 +71,10 @@ nthPermutation :: forall a. Eq a => NthPerm -> [a] -> [a]
 nthPermutation n xs = aux len nmod perms
   where
     perms = permute xs               :: Tree a
-    len   = fromIntegral $ length xs :: Integer
-    nmod  = shrink len n             :: Integer
+    len   = fromIntegral $ length xs :: Natural
+    nmod  = shrink len n             :: Natural
 
-    shrink :: Integer -> Integer -> Integer
+    shrink :: Natural -> Natural -> Natural
     shrink l idx =
       let upBound = fac len
       in if idx >= upBound
@@ -88,64 +90,108 @@ nthPermutation n xs = aux len nmod perms
           l' = fromIntegral $ length bs' -- length of next sub-tree
       in x : aux l' np' bs'
 
-fac :: Integer -> Integer
+fac :: Natural -> Natural
 fac n
   | n <= 0    = 1
   | otherwise = n * fac (n - 1)
 
-type SerialNumber = Integer
+type SerialNumber = Natural
 type Rotor = Map Natural (Natural, Natural)
 
 rotorSize :: Natural
 rotorSize = 26
 
+enumedPins :: [Pin]
+enumedPins = [0 .. rotorSize - 1]
+
 -- the right and left sides of the Rotor are ordered numerically
 -- and correspond to each other in geometric sense
 -- it's their commutation that is mixed
 nthFactoryRotor :: SerialNumber -> Rotor
-nthFactoryRotor s = 
-  let alph = [0 .. rotorSize - 1]
-  in M.fromList
-      $ zip alph
-      $ (\x -> zip x x) (nthPermutation s alph)
+nthFactoryRotor s =
+  M.fromList
+    $ zip enumedPins
+    $ (\x -> zip x x) (nthPermutation s enumedPins)
 
 type Level = Int
 type Obj   = Natural
 type Exc = [Obj]
 type State = [Obj]
 
-data PTree = Fst Obj [PTree]
-           | Snd Obj [PTree]
-           | Nil
+data PTree = Node Obj [PTree]
   deriving Show
 
-data Switch = R | F | S
-  deriving Show
+data Switch = F | S
+  deriving (Show, Eq)
 
 -- This function builds up a tree of all possible pairing combinations
 -- given a list of even length. The point is to model non-deterministic
 -- choice out of many possibilities, by choosing only one specific
 -- branch of a tree, which is possible due to lazy evaluation model
 -- The total amount of possible pairs is computed as:
--- "n! / 2*(n-2)!" where n is the length of an input list
-pairTree :: [Obj] -> PTree
-pairTree []     = Nil
-pairTree (x:xs) = aux [] R x 0 xs
-  where
-    aux :: Exc -> Switch -> Obj -> Level -> [Obj] -> PTree
-    aux _ S o l [] = Snd o []
-    aux _ _ _ _ [] = Nil
-    aux _ R o l xs =
-      Fst o $ nodes S l $ noExclusion xs
-    aux es F o l xs =
-      let xs' = exclude es xs
-      in if (es == xs)
-         then Nil
-         else Fst o $ nodes S l $ noExclusion xs
-    aux _ S o l xs =
-      let es = inits xs
-      in Snd o $ nodes F l $ zip es xs
+-- n! / m! * 2^m
+--   where n - length of an input list
+--         m - n / 2
+-- The formula was stolen from:
+-- https://www.physicsforums.com/threads/number-of-pairings-in-a-set-of-n-objects.668904/
+-- It works in the following way:
+--   there is n! ways to permute n objects without repetition
+--   m is the amount of pairs we can get out of n objects - n/2.
+--   Pairs in that tree of permutations may be arranged in m! ways
+--   and for each pair we want to exclude their commutation, so
+--   for each m pairs we divide by 2, thus we have 2^m
 
-    noExclusion  = zip (repeat [])
-    exclude es   = filter (not . (`elem` es))
-    nodes s l xs = [aux e s x (l+1) (delete x (snd $ unzip xs)) | (e, x) <- xs]
+pairTree :: [Obj] -> PTree
+pairTree []     = error "empty list"
+pairTree (x:xs) = aux F x 0 xs
+  where
+    aux :: Switch -> Obj -> Level -> [Obj] -> PTree
+    aux S o l [] = Node o []
+    aux _ _ _ [] = error "there is an odd amount of objects"
+    aux S o l (x:xs) = Node o [aux F x (l+1) xs]
+    aux _ o l xs = Node o [aux S x (l+1) (delete x xs) | x <- xs]
+
+countBranches :: PTree -> Natural
+countBranches (Node _ ts)
+  | null ts = 1
+  | otherwise = sum $ map countBranches ts
+
+combsOfDistinctUPairs :: Natural -> Natural
+combsOfDistinctUPairs n =
+  let m = n `div` 2
+  in fac n `div` (fac m * 2 ^ m)
+
+numToPairTreeBranch n i
+  | odd n = error "odd number of objects"
+  | n < 2 = error "number of objects must be at least 2"
+  | otherwise =
+      let gs   = if n >= 4 then [n-2, n-4 .. 2] else []
+          ns   = map combsOfDistinctUPairs gs
+          maxi = combsOfDistinctUPairs n
+          i'   = i  `mod` maxi
+      in aux i' ns
+  where
+    -- there is always only one possible way to choose the last pair
+    aux _ [] = [0, 0]
+    -- the extra zero is because first members of pairs are always fixed
+    aux n (x:xs) =
+      let (q,r) = n `divMod` x
+      in 0 : q : aux r xs
+
+getNthPairCombination :: [Obj] -> Natural -> [(Obj,Obj)]
+getNthPairCombination os i =
+  let l = fromIntegral $ length os -- amount of objs
+      t = [pairTree os]
+      b = numToPairTreeBranch l i
+  in aux b t
+  where
+    aux [] _        = []
+    aux (i:[]) _    = error "should have been even number of indices"
+    aux (f:s:is) tr =
+      let (Node a tr')  = tr !! (fromIntegral f)
+          (Node b tr'') = tr' !! (fromIntegral s)
+      in (a,b) : aux is tr''
+
+type Pin = Natural
+getReflectorBySerialNumber :: SerialNumber -> [(Pin,Pin)]
+getReflectorBySerialNumber s = getNthPairCombination enumedPins s
