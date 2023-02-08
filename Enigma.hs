@@ -98,9 +98,35 @@ fac n
   | otherwise = n * fac (n - 1)
 
 type SerialNumber = Natural
--- There is two maps because we need routes to go in the oposite way
--- after reflection
-type Rotor = (Map Pin Pin, Map Pin Pin)
+type Offset       = Natural
+type StateNumber  = Natural
+type Symbol       = Natural
+type Pin          = Natural
+
+type Reflector    = Map Pin Pin
+-- There is two maps because we need routes to go in
+-- opposite direction after reflection
+data Rotor = Rotor
+  { rLeft  :: Map Pin Pin
+  , rRigth :: Map Pin Pin
+  } deriving Show
+
+data RotorSt = RotorSt
+  { rOffset :: Offset
+  , rotor   :: Rotor
+  } deriving Show
+
+data Magazine = Magazine
+  { getR3  :: RotorSt
+  , getR2  :: RotorSt
+  , getR1  :: RotorSt
+  , mState :: StateNumber
+  } deriving Show
+
+data Enigma = Enigma
+  { reflector :: Reflector
+  , magazine  :: Magazine
+  } deriving Show
 
 rotorSize :: Pin
 rotorSize = 26
@@ -112,29 +138,24 @@ pins = [0 .. rotorSize - 1]
 -- and correspond to each other in geometric sense
 -- it's their commutation that is mixed
 nthFactoryRotor :: SerialNumber -> Rotor
-nthFactoryRotor s =
-  ( M.fromList $ zip pins ps
-  , M.fromList $ zip ps pins)
+nthFactoryRotor s = Rotor
+  (M.fromList $ zip pins ps)
+  (M.fromList $ zip ps pins)
   where
     ps = nthPermutation s pins
-    -- $ (\x -> zip x x) (nthPermutation s pins)
 
-type Offset = Natural
-type RotorSt = (Offset, Rotor)
 
 initNthRotor :: SerialNumber -> RotorSt
-initNthRotor s = (0, nthFactoryRotor s)
+initNthRotor s = RotorSt 0 (nthFactoryRotor s)
 
 rotateRotor :: RotorSt -> (Bool, RotorSt)
-rotateRotor (o, r) =
+rotateRotor (RotorSt o r) =
   let o' = f o
-  in (o' < o, (o', r))
+  in (o' < o, RotorSt o' r)
   where f = (`mod` rotorSize) . (+1)
 
 setRotorState :: Offset -> RotorSt -> RotorSt
-setRotorState o (_, r) = (o, r)
-
-type StateNumber = Natural
+setRotorState o (RotorSt _ r) = RotorSt o r
 
 incStateNumber :: StateNumber -> StateNumber
 incStateNumber s = (s + 1) `mod` rotorSize^3
@@ -154,28 +175,16 @@ setMagazineState s Magazine{..} =
     { getR1 = setRotorState x1 getR1
     , getR2 = setRotorState x2 getR2
     , getR3 = setRotorState x3 getR3
-    , mstate = s
+    , mState = s
     }
-
-data Magazine = Magazine
-  { getR3 :: RotorSt
-  , getR2 :: RotorSt
-  , getR1 :: RotorSt
-  , mstate :: StateNumber
-  } deriving Show
 
 initMagazine :: SerialNumber -> SerialNumber -> SerialNumber -> Magazine
 initMagazine s1 s2 s3 = Magazine
   { getR1 = initNthRotor s1
   , getR2 = initNthRotor s2
   , getR3 = initNthRotor s3
-  , mstate = 0
+  , mState = 0
   }
-
-data Enigma = Enigma
-  { reflector :: Reflector
-  , magazine  :: Magazine
-  } deriving Show
 
 initEnigma :: Reflector -> Magazine -> StateNumber -> Enigma
 initEnigma r m sn = Enigma r (setMagazineState sn m)
@@ -184,7 +193,6 @@ adjustEnigmaState :: Enigma -> StateNumber -> Enigma
 adjustEnigmaState e sn = e { magazine = (setMagazineState sn m) }
   where m = magazine e
 
-type Symbol = Natural
 
 -- It's pretty safe to use it
 -- [mapWithOffset o1 o2 p | o1 <- pins, o2 <- pins, p <- pins]
@@ -204,55 +212,56 @@ enigma =
     (initMagazine 12933993 912391293 2939232)
     0
 
-right2left :: Magazine -> Symbol -> Symbol
-right2left m s =
-  let
-    p1r = mapWithOffset 0 o1 s
-    p1l = r1 ! p1r
+data RotorSide = L | R
 
-    p2r = mapWithOffset o1 o2 p1l
-    p2l = r2 ! p2r
-
-    p3r = mapWithOffset o2 o3 p2l
-    p3l = r3 ! p3r
-
-    out = mapWithOffset o3 0 p3l
-  in out
+passRot :: RotorSt -> RotorSide -> Offset -> Symbol -> (Symbol, Offset)
+passRot rs lr o1 s =
+  let p = mapWithOffset o1 o2 s
+  in  (r ! p, o2)
   where
-    (o1, (_,r1)) = getR1 m
-    (o2, (_,r2)) = getR2 m
-    (o3, (_,r3)) = getR3 m
+    (o2,r) = case lr of
+      L -> (rOffset rs, rLeft $ rotor rs)
+      R -> (rOffset rs, rRigth $ rotor rs)
+
+getRotors :: Magazine -> (RotorSt, RotorSt, RotorSt)
+getRotors m = (getR1 m, getR2 m, getR3 m)
+
+passMag :: Magazine -> RotorSide -> Symbol -> Symbol
+passMag m lr s =
+  let (s1,o1) = passRot r1 lr 0 s
+      (s2,o2) = passRot r2 lr o1 s1
+      (s3,o3) = passRot r3 lr o2 s2
+  in mapWithOffset o3 0 s3
+  where
+    rs@(r1', r2', r3') = getRotors m
+    (r1, r2, r3) = case lr of
+      L -> (r3', r2', r1')
+      _ -> rs
+
+right2left :: Magazine -> Symbol -> Symbol
+right2left m s = passMag m R s
 
 reflect :: Reflector -> Symbol -> Symbol
 reflect r s = r ! s
 
 left2right :: Magazine -> Symbol -> Symbol
-left2right m s =
-  let
-    p3l = mapWithOffset 0 o3 s
-    p3r = l3 ! p3l
+left2right m s = passMag m L s
 
-    p2l = mapWithOffset o3 o2 p3r
-    p2r = l2 ! p2l
-
-    p1l = mapWithOffset o2 o1 p2r
-    p1r = l1 ! p1l
-
-    out = mapWithOffset o1 0 p1r
-  in out
+passEnigma :: Enigma -> Symbol -> Symbol
+passEnigma e = left2right m . reflect re . right2left m
   where
-    (o1, (l1,_)) = getR1 m
-    (o2, (l2,_)) = getR2 m
-    (o3, (l3,_)) = getR3 m
+    m  = magazine e
+    re = reflector e
 
 nextEnigmaState :: Enigma -> Enigma
 nextEnigmaState e = adjustEnigmaState e (incStateNumber st)
-  where st = mstate $ magazine e
+  where
+    st = mState $ magazine e
 
 passSymbol :: Enigma -> Symbol -> (Symbol, Enigma)
 passSymbol e s
   | not $ s >= 0 && s < rotorSize = error "symbol out of bounds"
-  | otherwise = ( left2right m (reflect re (right2left m s))
+  | otherwise = ( passEnigma e s
                 , nextEnigmaState e)
   where
     m  = magazine e
@@ -343,9 +352,6 @@ getNthPairCombination os i =
       let (Node a tr')  = tr !! (fromIntegral f)
           (Node b tr'') = tr' !! (fromIntegral s)
       in (a,b) : aux is tr''
-
-type Pin = Natural
-type Reflector = Map Pin Pin
 
 nthFactoryReflector :: SerialNumber -> Reflector
 nthFactoryReflector s =
