@@ -7,6 +7,7 @@ module Enigma.Constants
   , maxRotorNumber
   , maxMagazineState
   , rotorsCount
+  , alphaMap
   ) where
 
 import Numeric.Natural
@@ -15,9 +16,20 @@ import Enigma.Aliases
 import Combinatorics.Common
 import Combinatorics.UPairsTree (combsOfDistinctUPairs)
 
+import Data.Map (Map)
+import qualified Data.Map as M
+
 -- N.B. The amount of characters must be even
+-- The printable range of ascii except for 127th char which is \delete
+-- the newline char is insted of it
 alphabet :: [Char]
-alphabet = map toEnum [32 .. 127]
+alphabet = map toEnum [32 .. 126] ++ ['\n']
+
+alphaMap :: (Map Symbol Char, Map Char Symbol)
+alphaMap =
+  ( M.fromList $ zip [0..] alphabet
+  , M.fromList $ zip alphabet [0..])
+
 
 fstChar :: Char
 fstChar = head alphabet

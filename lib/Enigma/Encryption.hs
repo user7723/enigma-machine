@@ -4,13 +4,15 @@ module Enigma.Encryption
   ) where
 
 import Data.Map (Map, (!))
+import qualified Data.Map as M
+
 import Data.Maybe (catMaybes)
 
 import qualified Data.Text as T
 import Data.Text (Text)
 
 import Enigma.Aliases
-import Enigma.Constants (rotorSize, alphabet, fstChar)
+import Enigma.Constants (rotorSize, alphabet, fstChar, alphaMap)
 import Enigma.Enigma    (Enigma(..), nextEnigmaState)
 import Enigma.Magazine  (Magazine(..), getRotors)
 import Enigma.Reflector (Reflector)
@@ -89,17 +91,14 @@ decrypt :: Enigma -> Text -> Text
 decrypt = encrypt
 
 charToSymbol :: Char -> Maybe Symbol
-charToSymbol c
-  | c `elem` alphabet = Just $ fromIntegral $ ci - fci
-  | otherwise         = Nothing
+charToSymbol c = M.lookup c cs
   where
-    ci  = fromEnum c
-    fci = fromEnum fstChar
+    (_,cs) = alphaMap
 
 symbolToChar :: Symbol -> Char
-symbolToChar = toEnum . (+ fci) . fromIntegral
+symbolToChar = (sc !) . (`mod` rotorSize)
   where
-    fci = fromEnum fstChar
+    (sc,_) = alphaMap
 
 translateFrom :: [Symbol] -> Text
 translateFrom = T.pack . map symbolToChar

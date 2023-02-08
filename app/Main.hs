@@ -5,7 +5,14 @@ module Main where
 import qualified Data.Text as T
 import Data.Text (Text)
 
-import qualified Data.Text.IO as TIO
+import qualified Data.Text.IO as T
+
+import Control.Monad (unless)
+import Control.Applicative (liftA2)
+
+import System.Environment (getArgs)
+import System.IO (IOMode(..), openFile, hClose, hIsClosed, stdout, stdin)
+import System.Exit (ExitCode(..), exitWith)
 
 import Enigma.Constants
 import Enigma.Enigma     (initEnigma)
@@ -28,10 +35,17 @@ info = mconcat
 
 main :: IO ()
 main = do
-  TIO.putStrLn info
-  let msg = "Hello, world!"
-      emsg = encrypt enigma msg
-  TIO.putStrLn msg
-  print emsg
-  let msg' = decrypt enigma emsg
-  TIO.putStrLn msg'
+  args <- getArgs
+  (inp, out) <-
+    case args of
+      []      -> pure (stdin, stdout)
+      (x:[])  -> liftA2 (,) (openFile x ReadMode) (pure stdout)
+      (x:y:_) -> liftA2 (,) (openFile x ReadMode) (openFile y WriteMode)
+  txt <- T.hGetContents inp
+  let etxt = encrypt enigma txt
+  T.hPutStr out etxt
+  inpc <- hIsClosed inp
+  outc <- hIsClosed out
+
+  unless (inpc || inp == stdin)  $ hClose inp
+  unless (outc || out == stdout) $ hClose out
