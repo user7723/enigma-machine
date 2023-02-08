@@ -4,9 +4,10 @@ module Enigma.Encryption
   ) where
 
 import Data.Map (Map, (!))
+import Data.Maybe (catMaybes)
 
 import Enigma.Aliases
-import Enigma.Constants (rotorSize)
+import Enigma.Constants (rotorSize, alphabet, fstChar)
 import Enigma.Enigma    (Enigma(..), nextEnigmaState)
 import Enigma.Magazine  (Magazine(..), getRotors)
 import Enigma.Reflector (Reflector)
@@ -53,11 +54,13 @@ reflect r s = r ! s
 left2right :: Magazine -> Symbol -> Symbol
 left2right m s = passMag m L s
 
+-- 'PassSymbol' takes input symbol by modulo of 'rotorSize'
+-- so it becomes safe to use '!' operator, because rotors
+-- enumerate their pins from 0 up to 'rotorSize' non-inclusive
 passSymbol :: Enigma -> Symbol -> (Symbol, Enigma)
-passSymbol e s
-  | not $ s >= 0 && s < rotorSize = error "symbol out of bounds"
-  | otherwise = ( passEnigma e s
-                , nextEnigmaState e)
+passSymbol e s =
+  ( passEnigma e (s `mod` rotorSize)
+  , nextEnigmaState e)
   where
     m  = magazine e
     re = reflector e
@@ -76,8 +79,27 @@ passSymbols e
       let (s', e') = passSymbol e s
       in (s':acc, e')
 
-encrypt :: Enigma -> [Symbol] -> [Symbol]
-encrypt = (fst .) . passSymbols
+encrypt :: Enigma -> String -> String
+encrypt e = translateFrom . fst . passSymbols e . translateTo
 
-decrypt :: Enigma -> [Symbol] -> [Symbol]
+decrypt :: Enigma -> String -> String
 decrypt = encrypt
+
+charToSymbol :: Char -> Maybe Symbol
+charToSymbol c
+  | c `elem` alphabet = Just $ fromIntegral $ ci - fci
+  | otherwise         = Nothing
+  where
+    ci  = fromEnum c
+    fci = fromEnum fstChar
+
+symbolToChar :: Symbol -> Char
+symbolToChar = toEnum . (+ fci) . fromIntegral
+  where
+    fci = fromEnum fstChar
+
+translateFrom :: [Symbol] -> String
+translateFrom = map symbolToChar
+
+translateTo :: String -> [Symbol]
+translateTo = catMaybes . map charToSymbol
