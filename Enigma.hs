@@ -1,5 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE MultiWayIf #-}
 
 -- import Debug.Trace
 import Numeric.Natural
@@ -124,14 +125,19 @@ type RotorSt = (Offset, Rotor)
 initNthRotor :: SerialNumber -> RotorSt
 initNthRotor s = (0, nthFactoryRotor s)
 
-rotateRotor :: RotorSt -> RotorSt
-rotateRotor (o, r) = (f o, r)
+rotateRotor :: RotorSt -> (Bool, RotorSt)
+rotateRotor (o, r) =
+  let o' = f o
+  in (o' < o, (o', r))
   where f = (`mod` rotorSize) . (+1)
 
 setRotorState :: Offset -> RotorSt -> RotorSt
 setRotorState o (_, r) = (o, r)
 
 type StateNumber = Natural
+
+incStateNumber :: StateNumber -> StateNumber
+incStateNumber s = (s + 1) `mod` rotorSize^3
 
 splitState :: StateNumber -> (Offset,Offset,Offset)
 splitState s =
@@ -148,12 +154,14 @@ setMagazineState s Magazine{..} =
     { getR1 = setRotorState x1 getR1
     , getR2 = setRotorState x2 getR2
     , getR3 = setRotorState x3 getR3
+    , mstate = s
     }
 
 data Magazine = Magazine
   { getR3 :: RotorSt
   , getR2 :: RotorSt
   , getR1 :: RotorSt
+  , mstate :: StateNumber
   } deriving Show
 
 initMagazine :: SerialNumber -> SerialNumber -> SerialNumber -> Magazine
@@ -161,6 +169,7 @@ initMagazine s1 s2 s3 = Magazine
   { getR1 = initNthRotor s1
   , getR2 = initNthRotor s2
   , getR3 = initNthRotor s3
+  , mstate = 0
   }
 
 data Enigma = Enigma
@@ -171,6 +180,9 @@ data Enigma = Enigma
 initEnigma :: Reflector -> Magazine -> StateNumber -> Enigma
 initEnigma r m sn = Enigma r (setMagazineState sn m)
 
+adjustEnigmaState :: Enigma -> StateNumber -> Enigma
+adjustEnigmaState e sn = e { magazine = (setMagazineState sn m) }
+  where m = magazine e
 
 type Symbol = Natural
 
@@ -181,9 +193,9 @@ mapWithOffset o1 o2 p = fromIntegral $
   (rsi + (o2i - o1i) + pi) `mod` rsi
   where
     rsi = fromIntegral rotorSize :: Integer
-    pi  = fromIntegral p   :: Integer
-    o1i = fromIntegral o1  :: Integer
-    o2i = fromIntegral o2  :: Integer
+    pi  = fromIntegral p         :: Integer
+    o1i = fromIntegral o1        :: Integer
+    o2i = fromIntegral o2        :: Integer
 
 
 enigma =
@@ -233,13 +245,26 @@ left2right m s =
     (o2, (l2,_)) = getR2 m
     (o3, (l3,_)) = getR3 m
 
+nextEnigmaState :: Enigma -> Enigma
+nextEnigmaState e = adjustEnigmaState e (incStateNumber st)
+  where st = mstate $ magazine e
+
 passSymbol :: Enigma -> Symbol -> (Symbol, Enigma)
 passSymbol e s
   | not $ s >= 0 && s < rotorSize = error "symbol out of bounds"
-  | otherwise = (left2right m (reflect re (right2left m s)), e)
+  | otherwise = ( left2right m (reflect re (right2left m s))
+                , nextEnigmaState e)
   where
     m  = magazine e
     re = reflector e
+
+encrypt :: Enigma -> [Symbol] -> ([Symbol], Enigma)
+encrypt e
+  = foldr aux ([],e)
+  where
+    aux s (acc, e) =
+      let (s', e') = passSymbol e s
+      in (s':acc, e')
 
 
 type Level = Int
