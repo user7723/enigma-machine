@@ -1,14 +1,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards #-}
+
 -- import Debug.Trace
 import Numeric.Natural
 import Data.Tuple (swap)
 
-import Data.Map (Map)
+import Data.Map (Map, (!))
 import qualified Data.Map as M
 
 import Data.List (delete, inits)
-
-import Control.Monad (guard)
 
 choose :: Eq a => Natural -> [a] -> [[a]]
 choose n xs
@@ -97,27 +97,153 @@ fac n
   | otherwise = n * fac (n - 1)
 
 type SerialNumber = Natural
-type Rotor = Map Natural (Natural, Natural)
+-- There is two maps because we need routes to go in the oposite way
+-- after reflection
+type Rotor = (Map Pin Pin, Map Pin Pin)
 
-rotorSize :: Natural
+rotorSize :: Pin
 rotorSize = 26
 
-enumedPins :: [Pin]
-enumedPins = [0 .. rotorSize - 1]
+pins :: [Pin]
+pins = [0 .. rotorSize - 1]
 
 -- the right and left sides of the Rotor are ordered numerically
 -- and correspond to each other in geometric sense
 -- it's their commutation that is mixed
 nthFactoryRotor :: SerialNumber -> Rotor
 nthFactoryRotor s =
-  M.fromList
-    $ zip enumedPins
-    $ (\x -> zip x x) (nthPermutation s enumedPins)
+  ( M.fromList $ zip pins ps
+  , M.fromList $ zip ps pins)
+  where
+    ps = nthPermutation s pins
+    -- $ (\x -> zip x x) (nthPermutation s pins)
+
+type Offset = Natural
+type RotorSt = (Offset, Rotor)
+
+initNthRotor :: SerialNumber -> RotorSt
+initNthRotor s = (0, nthFactoryRotor s)
+
+rotateRotor :: RotorSt -> RotorSt
+rotateRotor (o, r) = (f o, r)
+  where f = (`mod` rotorSize) . (+1)
+
+setRotorState :: Offset -> RotorSt -> RotorSt
+setRotorState o (_, r) = (o, r)
+
+type StateNumber = Natural
+
+splitState :: StateNumber -> (Offset,Offset,Offset)
+splitState s =
+  let s0 = s `mod` (rotorSize^3)
+      (s1,x1) = s0 `divMod` rotorSize
+      (s2,x2) = s1 `divMod` rotorSize
+      (_ ,x3) = s2 `divMod` rotorSize
+  in (x1,x2,x3)
+
+setMagazineState :: StateNumber -> Magazine -> Magazine
+setMagazineState s Magazine{..} =
+  let (x1,x2,x3) = splitState s
+  in Magazine
+    { getR1 = setRotorState x1 getR1
+    , getR2 = setRotorState x2 getR2
+    , getR3 = setRotorState x3 getR3
+    }
+
+data Magazine = Magazine
+  { getR3 :: RotorSt
+  , getR2 :: RotorSt
+  , getR1 :: RotorSt
+  } deriving Show
+
+initMagazine :: SerialNumber -> SerialNumber -> SerialNumber -> Magazine
+initMagazine s1 s2 s3 = Magazine
+  { getR1 = initNthRotor s1
+  , getR2 = initNthRotor s2
+  , getR3 = initNthRotor s3
+  }
+
+data Enigma = Enigma
+  { reflector :: Reflector
+  , magazine  :: Magazine
+  } deriving Show
+
+initEnigma :: Reflector -> Magazine -> StateNumber -> Enigma
+initEnigma r m sn = Enigma r (setMagazineState sn m)
+
+
+type Symbol = Natural
+
+-- It's pretty safe to use it
+-- [mapWithOffset o1 o2 p | o1 <- pins, o2 <- pins, p <- pins]
+mapWithOffset :: Offset -> Offset -> Pin -> Pin
+mapWithOffset o1 o2 p = fromIntegral $
+  (rsi + (o2i - o1i) + pi) `mod` rsi
+  where
+    rsi = fromIntegral rotorSize :: Integer
+    pi  = fromIntegral p   :: Integer
+    o1i = fromIntegral o1  :: Integer
+    o2i = fromIntegral o2  :: Integer
+
+
+enigma =
+  initEnigma
+    (nthFactoryReflector 0)
+    (initMagazine 12933993 912391293 2939232)
+    0
+
+right2left :: Magazine -> Symbol -> Symbol
+right2left m s =
+  let
+    p1r = mapWithOffset 0 o1 s
+    p1l = r1 ! p1r
+
+    p2r = mapWithOffset o1 o2 p1l
+    p2l = r2 ! p2r
+
+    p3r = mapWithOffset o2 o3 p2l
+    p3l = r3 ! p3r
+
+    out = mapWithOffset o3 0 p3l
+  in out
+  where
+    (o1, (_,r1)) = getR1 m
+    (o2, (_,r2)) = getR2 m
+    (o3, (_,r3)) = getR3 m
+
+reflect :: Reflector -> Symbol -> Symbol
+reflect r s = r ! s
+
+left2right :: Magazine -> Symbol -> Symbol
+left2right m s =
+  let
+    p3l = mapWithOffset 0 o3 s
+    p3r = l3 ! p3l
+
+    p2l = mapWithOffset o3 o2 p3r
+    p2r = l2 ! p2l
+
+    p1l = mapWithOffset o2 o1 p2r
+    p1r = l1 ! p1l
+
+    out = mapWithOffset o1 0 p1r
+  in out
+  where
+    (o1, (l1,_)) = getR1 m
+    (o2, (l2,_)) = getR2 m
+    (o3, (l3,_)) = getR3 m
+
+passSymbol :: Enigma -> Symbol -> (Symbol, Enigma)
+passSymbol e s
+  | not $ s >= 0 && s < rotorSize = error "symbol out of bounds"
+  | otherwise = (left2right m (reflect re (right2left m s)), e)
+  where
+    m  = magazine e
+    re = reflector e
+
 
 type Level = Int
 type Obj   = Natural
-type Exc = [Obj]
-type State = [Obj]
 
 data PTree = Node Obj [PTree]
   deriving Show
@@ -196,9 +322,9 @@ getNthPairCombination os i =
 type Pin = Natural
 type Reflector = Map Pin Pin
 
-getReflectorBySerialNumber :: SerialNumber -> Reflector
-getReflectorBySerialNumber s =
-  let ps = getNthPairCombination enumedPins s
+nthFactoryReflector :: SerialNumber -> Reflector
+nthFactoryReflector s =
+  let ps = getNthPairCombination pins s
   in foldr (\p acc -> insert (swap p) (insert p acc)) M.empty ps
   where
     insert p = uncurry M.insert p
