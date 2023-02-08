@@ -6,6 +6,9 @@ module Enigma.Encryption
 import Data.Map (Map, (!))
 import Data.Maybe (catMaybes)
 
+import qualified Data.Text as T
+import Data.Text (Text)
+
 import Enigma.Aliases
 import Enigma.Constants (rotorSize, alphabet, fstChar)
 import Enigma.Enigma    (Enigma(..), nextEnigmaState)
@@ -79,10 +82,10 @@ passSymbols e
       let (s', e') = passSymbol e s
       in (s':acc, e')
 
-encrypt :: Enigma -> String -> String
+encrypt :: Enigma -> Text -> Text
 encrypt e = translateFrom . fst . passSymbols e . translateTo
 
-decrypt :: Enigma -> String -> String
+decrypt :: Enigma -> Text -> Text
 decrypt = encrypt
 
 charToSymbol :: Char -> Maybe Symbol
@@ -98,8 +101,8 @@ symbolToChar = toEnum . (+ fci) . fromIntegral
   where
     fci = fromEnum fstChar
 
-translateFrom :: [Symbol] -> String
-translateFrom = map symbolToChar
+translateFrom :: [Symbol] -> Text
+translateFrom = T.pack . map symbolToChar
 
-translateTo :: String -> [Symbol]
-translateTo = catMaybes . map charToSymbol
+translateTo :: Text -> [Symbol]
+translateTo = catMaybes . map charToSymbol . T.unpack

@@ -3,9 +3,17 @@ module Enigma.Constants
   , pins
   , alphabet
   , fstChar
+  , maxReflectorNumber
+  , maxRotorNumber
+  , maxMagazineState
+  , rotorsCount
   ) where
 
+import Numeric.Natural
+
 import Enigma.Aliases
+import Combinatorics.Common
+import Combinatorics.UPairsTree (combsOfDistinctUPairs)
 
 -- N.B. The amount of characters must be even
 alphabet :: [Char]
@@ -20,5 +28,17 @@ fstChar = head alphabet
 rotorSize :: Pin
 rotorSize = fromIntegral $ length alphabet
 
+rotorsCount :: Natural
+rotorsCount = 3
+
 pins :: [Pin]
 pins = [0 .. rotorSize - 1]
+
+maxReflectorNumber :: SerialNumber
+maxReflectorNumber = combsOfDistinctUPairs rotorSize
+
+maxRotorNumber :: SerialNumber
+maxRotorNumber = fac rotorSize
+
+maxMagazineState :: StateNumber
+maxMagazineState = rotorSize ^ rotorsCount

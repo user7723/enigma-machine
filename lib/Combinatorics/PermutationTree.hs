@@ -45,8 +45,6 @@ permute ns = do
 --      |          |          |
 --      3rd        4th        5th
 
-
-
 -- nthPermutation function can be used to represent the factory issued
 -- rotor of the Enigma machine with specific serial number.
 -- It's main feature is that it computes all possible permutations

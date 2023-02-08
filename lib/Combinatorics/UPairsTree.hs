@@ -1,5 +1,6 @@
 module Combinatorics.UPairsTree
-  (getNthPairCombination
+  ( getNthPairCombination
+  , combsOfDistinctUPairs
   ) where
 
 import Combinatorics.Common
