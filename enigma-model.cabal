@@ -37,3 +37,17 @@ executable enigma
     , enigma-model
     , text
   default-language: Haskell2010
+
+test-suite tests
+  type:
+    exitcode-stdio-1.0
+  hs-source-dirs:
+    tests
+  default-language:
+    Haskell2010
+  main-is: Main.hs
+  build-depends:
+      base >=4.7 && <5
+    , QuickCheck
+    , enigma-model
+    , text
