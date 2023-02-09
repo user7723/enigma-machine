@@ -12,7 +12,7 @@ import qualified Data.Text as T
 import Data.Text (Text)
 
 import Enigma.Aliases
-import Enigma.Constants (rotorSize, alphabet, fstChar, alphaMap)
+import Enigma.Constants (rotorSize, alphabet, alphaMap)
 import Enigma.Enigma    (Enigma(..), nextEnigmaState)
 import Enigma.Magazine  (Magazine(..), getRotors)
 import Enigma.Reflector (Reflector)

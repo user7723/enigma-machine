@@ -1,6 +1,5 @@
 module Enigma.Enigma
   ( Enigma(..)
-  , enigmaSample
   , initEnigma
   , adjustEnigmaState
   , nextEnigmaState
@@ -15,12 +14,6 @@ data Enigma = Enigma
   { reflector :: Reflector
   , magazine  :: Magazine
   } deriving Show
-
-enigmaSample =
-  initEnigma
-    (nthFactoryReflector 0)
-    (initMagazine 12933993 912391293 2939232)
-    0
 
 initEnigma :: Reflector -> Magazine -> StateNumber -> Enigma
 initEnigma r m sn = Enigma r (setMagazineState sn m)

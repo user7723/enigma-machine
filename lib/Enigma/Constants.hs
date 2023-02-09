@@ -2,7 +2,6 @@ module Enigma.Constants
   ( rotorSize
   , pins
   , alphabet
-  , fstChar
   , maxReflectorNumber
   , maxRotorNumber
   , maxMagazineState
@@ -29,10 +28,6 @@ alphaMap :: (Map Symbol Char, Map Char Symbol)
 alphaMap =
   ( M.fromList $ zip [0..] alphabet
   , M.fromList $ zip alphabet [0..])
-
-
-fstChar :: Char
-fstChar = head alphabet
 
 -- the rotor size can be safely adjusted as needed
 -- so we probably can make it big enough to encode the ascii range
