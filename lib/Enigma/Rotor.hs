@@ -11,7 +11,7 @@ module Enigma.Rotor
   ) where
 
 import Combinatorics.PermutationTree (nthPermutation)
-import Enigma.Constants (pins, rotorSize)
+import Enigma.Constants (pins, rotorSize, rotorsCount)
 import Enigma.Aliases (SerialNumber, Pin, Offset, StateNumber, Overflow)
 
 import Data.Map (Map, (!))
@@ -54,11 +54,11 @@ setRotorState :: Offset -> RotorSt -> RotorSt
 setRotorState o (RotorSt _ r) = RotorSt o r
 
 incStateNumber :: StateNumber -> StateNumber
-incStateNumber s = (s + 1) `mod` rotorSize^3
+incStateNumber s = (s + 1) `mod` rotorSize^rotorsCount
 
 splitState :: StateNumber -> (Offset,Offset,Offset)
 splitState s =
-  let s0 = s `mod` (rotorSize^3)
+  let s0 = s `mod` (rotorSize^rotorsCount)
       (s1,x1) = s0 `divMod` rotorSize
       (s2,x2) = s1 `divMod` rotorSize
       (_ ,x3) = s2 `divMod` rotorSize
