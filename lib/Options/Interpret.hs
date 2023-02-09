@@ -50,8 +50,8 @@ usage = [r|enigma <RequiredArgs> [Options]
             print this help message
 
     -b,--bounds
-            print max bounds of the enigma
-            machine parameters
+            print max bounds of the enigma machine parameters,
+            and other additional information
 
     -i<InpFile>, --input=<InpFile>
             input file, default is <stdin>
