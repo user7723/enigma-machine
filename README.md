@@ -1,4 +1,4 @@
-# Enigma Model
+# Enigma machine model
 
 ### Description
 Enigma is a command line program that (inefficiently) encrypts your data either from a file or from `<stdin>`, and writes its output to a specified file or to `<stdout>`. It does not abide by the constraint of 26 symbols from the original hardware implementation, and it's capable to map all ASCII characters from printable range except for `delete` character which was replaced with `newline` character.
@@ -8,10 +8,10 @@ It is supposed to be executed in the following way:
 $ enigma <RequiredArgs> [Options]
 ```
 ### Options
-Where options are defined like this:
-  - `-h,--help` - print this help message
+Options are defined like this:
+  - `-h,--help` - print help message and exit
   - `-b,--bounds` - print max bounds of the enigma machine parameters,
-          and other additional information
+          and other additional information and exit
   - `-i<InpFile>, --input=<InpFile>` - input file, default is `<stdin>`
   - `-o<OutFile>, --output=<OutFile>` - output file, default is `<stdout>`
 
@@ -23,7 +23,7 @@ It is required to pass enigma machine parameters explicitly:
 
 ### Example of usage
 
-Example of encryption of the source code for the application `./app/Main.hs` into `./Main.hs.enc`:
+Encryption example of the source code for the application `./app/Main.hs` into `./Main.hs.enc`:
 ```
 enigma \
   -r1231283102938129031231239128319\  # 1st rotor serial number
@@ -47,10 +47,10 @@ enigma \
                                       # output goes to stdout
 ```
 
-So, the property `f(f(x)) = x` should hold for every text whose elements are belong to the supported alphabet.
+So, the property `f(f(x)) = x` should hold for every text whose elements belong to the supported alphabet.
 
 ### Retrieving additional info about the enigma machine
-The following command will tell about values of some constants of the enigma machine:
+The following command will print values of some constants of the enigma machine:
 ```
 $ enigma -b
 ```
