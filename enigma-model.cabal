@@ -16,11 +16,13 @@ library
     Combinatorics.Common
     Combinatorics.PermutationTree
     Combinatorics.UPairsTree
+    Options.Parse
+    Options.Interpret
   build-depends:
       base ^>=4.16.3.0
     , text
     , containers
-
+    , raw-strings-qq
   hs-source-dirs:
       lib
     , lib/Enigma
@@ -31,7 +33,7 @@ executable enigma
   main-is:
     Main.hs
   hs-source-dirs:
-      app
+    app
   build-depends:
       base >=4.7 && <5
     , enigma-model
