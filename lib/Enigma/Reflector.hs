@@ -12,9 +12,8 @@ import qualified Data.Map as M
 
 import Combinatorics.UPairsTree (getNthPairCombination)
 import Enigma.Constants (pins)
-import Enigma.Aliases (Pin)
+import Enigma.Aliases (Pin, SerialNumber)
 
-type SerialNumber = Natural
 type Reflector    = Map Pin Pin
 
 nthFactoryReflector :: SerialNumber -> Reflector
