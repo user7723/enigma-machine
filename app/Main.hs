@@ -9,8 +9,7 @@ import Control.Monad (unless)
 import System.Environment (getArgs)
 import System.IO (hClose, hIsClosed, stdout, stdin)
 
-import Enigma.Constants
-import Enigma.Encryption (encrypt, decrypt)
+import Enigma.Encryption (encrypt)
 
 import Options.Interpret (runArgs, exitFail)
 

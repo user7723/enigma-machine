@@ -3,9 +3,6 @@ module Enigma.Encryption
   , decrypt
   ) where
 
-import Data.HashMap.Strict ((!))
-import qualified Data.HashMap.Strict as M
-
 import qualified Data.Array.Unboxed as A
 
 import Data.Maybe (catMaybes)
@@ -14,7 +11,7 @@ import qualified Data.Text as T
 import Data.Text (Text)
 
 import Enigma.Aliases
-import Enigma.Constants (rotorSize, alphabet, alphaMap)
+import Enigma.Constants (rotorSize, alphabet, alphaMap, alphabetBounds)
 import Enigma.Enigma    (Enigma(..), nextEnigmaState)
 import Enigma.Magazine  (Magazine(..), getRotors)
 import Enigma.Reflector (Reflector)
@@ -93,12 +90,14 @@ decrypt :: Enigma -> Text -> Text
 decrypt = encrypt
 
 charToPin :: Char -> Maybe Pin
-charToPin c = M.lookup c cs
+charToPin c
+  | A.inRange alphabetBounds c = Just $ cs A.! c
+  | otherwise = Nothing
   where
     (_,cs) = alphaMap
 
 symbolToChar :: Pin -> Char
-symbolToChar = (sc !) . (`mod` rotorSize)
+symbolToChar = (sc A.!) . (`mod` rotorSize)
   where
     (sc,_) = alphaMap
 

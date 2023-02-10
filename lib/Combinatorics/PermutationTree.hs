@@ -7,7 +7,6 @@ module Combinatorics.PermutationTree
 import Numeric.Natural
 import Combinatorics.Common(fac)
 
-type ListIndex = Natural
 type ListSize  = Natural
 type NthPerm   = Natural
 

@@ -13,7 +13,6 @@ import qualified Data.Text.IO as T
 
 import Control.Applicative (Alternative(..))
 import Data.Foldable (traverse_)
-import Data.Maybe (maybe)
 import Data.Text (Text)
 import Data.IORef (IORef, newIORef, writeIORef, readIORef)
 
@@ -79,25 +78,25 @@ iBounds Bounds = Just $ T.putStrLn bounds >> exitWith ExitSuccess
 iBounds _ = Nothing
 
 iRoSerial :: IORef (Maybe Magazine) -> Option -> Maybe (IO ())
-iRoSerial r (RoSerial (s1,s2,s3)) = Just $
-  writeIORef r $ Just $ initMagazine s1 s2 s3
+iRoSerial ref (RoSerial (s1,s2,s3)) = Just $
+  writeIORef ref $ Just $ initMagazine s1 s2 s3
 iRoSerial _ _ = Nothing
 
 iReSerial :: IORef (Maybe Reflector) -> Option -> Maybe (IO ())
-iReSerial r (ReSerial n) = Just $
-  writeIORef r $ Just $ nthFactoryReflector n
+iReSerial ref (ReSerial n) = Just $
+  writeIORef ref $ Just $ nthFactoryReflector n
 iReSerial _ _ = Nothing
 
 iEState :: IORef (Maybe StateNumber) -> Option -> Maybe (IO ())
-iEState r (EState s) = Just $ do writeIORef r $ Just s
+iEState ref (EState s) = Just $ do writeIORef ref $ Just s
 iEState _ _ = Nothing
 
 iInput :: IORef (Maybe IFilePath) -> Option -> Maybe (IO ())
-iInput r (Input f) = Just $ writeIORef r $ Just f
+iInput ref (Input f) = Just $ writeIORef ref $ Just f
 iInput _ _ = Nothing
 
 iOutput :: IORef (Maybe OFilePath) -> Option -> Maybe (IO ())
-iOutput r (Output f) = Just $ writeIORef r $ Just f
+iOutput ref (Output f) = Just $ writeIORef ref $ Just f
 iOutput _ _ = Nothing
 
 exitFail :: IO ()
@@ -125,18 +124,22 @@ interpretOption rm rr rs ri ro o = do
     Just act -> act
     Nothing  -> exitFail
 
+liftA5
+  :: Applicative f
+  => (a1 -> a2 -> a3 -> a4 -> a5 -> b)
+  -> f a1 -> f a2 -> f a3 -> f a4 -> f a5 -> f b
 liftA5 f a1 a2 a3 a4 a5 = f <$> a1 <*> a2 <*> a3 <*> a4 <*> a5
 
 interpretOptions :: [Option] -> IO (Maybe (Enigma, IHandle, OHandle))
 interpretOptions os = do
-  let n = newIORef Nothing
-  (rm,rr,rs,ri,ro) <- liftA5 (,,,,) n n n n n
+  let nw = newIORef Nothing
+  (rm,rr,rs,ri,ro) <- liftA5 (,,,,) nw nw nw nw nw
   traverse_ (interpretOption rm rr rs ri ro) os
-  let r = readIORef
-  (mm,mr,ms,mi,mo) <- liftA5 (,,,,) (r rm) (r rr) (r rs) (r ri) (r ro)
+  let rd = readIORef
+  (mm,mr,ms,mi,mo) <- liftA5 (,,,,) (rd rm) (rd rr) (rd rs) (rd ri) (rd ro)
   case (mm,mr,ms) of
-    (Just m, Just r, Just s) -> do
-      let e = initEnigma r m s
+    (Just ma, Just re, Just st) -> do
+      let e = initEnigma re ma st
       i <- maybe (pure stdin)  (flip openFile ReadMode) mi
       o <- maybe (pure stdout) (flip openFile WriteMode) mo
       return $ Just (e,i,o)

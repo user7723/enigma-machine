@@ -15,7 +15,9 @@ choose n xs
       return $ x:rest
 
 fac :: Natural -> Natural
-fac n
-  | n == 0    = 1
-  | otherwise = n * fac (n - 1)
+fac = aux 1
+  where
+    aux a 0 = a
+    aux a 1 = a
+    aux a n = aux (a*n) (n-1)
 

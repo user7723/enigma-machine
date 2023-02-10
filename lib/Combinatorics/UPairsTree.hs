@@ -10,7 +10,6 @@ import Combinatorics.Common
 import Numeric.Natural
 import Data.List (delete)
 
-type Level     = Int
 type ObjsCount = Natural
 type NthBranch = Natural
 type Index     = Natural
@@ -41,13 +40,13 @@ data Switch = F | S
 
 pairsTree :: forall a. Eq a => [a] -> PTree a
 pairsTree []     = error "empty list"
-pairsTree (x:xs) = aux F x xs
+pairsTree (y:ys) = aux F y ys
   where
     aux :: Switch -> a -> [a] -> PTree a
     aux S o [] = Node o []
     aux _ _ [] = error "there is an odd amount of objects"
     aux S o (x:xs) = Node o [aux F x xs]
-    aux _ o xs     = Node o [aux S x (delete x xs) | x <- xs]
+    aux _ o xs     = Node o [aux S x' (delete x' xs) | x' <- xs]
 
 countBranches :: PTree a -> Natural
 countBranches (Node _ ts)
@@ -74,8 +73,8 @@ numToPairTreeBranch n i
     -- there is always only one possible way to choose the last pair
     aux _ [] = [0, 0]
     -- the extra zero is because first members of pairs are always fixed
-    aux n (x:xs) =
-      let (q,r) = n `divMod` x
+    aux nb (x:xs) =
+      let (q,r) = nb `divMod` x
       in 0 : q : aux r xs
 
 getNthPairCombination :: forall a. Eq a => [a] -> Natural -> [(a,a)]
@@ -87,7 +86,7 @@ getNthPairCombination os i =
   where
     aux :: [Index] -> [PTree a] -> [(a,a)]
     aux [] _        = []
-    aux (i:[]) _    = error "should have been even number of indices"
+    aux (_:[]) _    = error "should have been even number of indices"
     aux (f:s:is) tr =
       let (Node a tr')  = tr !! (fromIntegral f)
           (Node b tr'') = tr' !! (fromIntegral s)
