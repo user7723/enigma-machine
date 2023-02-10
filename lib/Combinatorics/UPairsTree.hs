@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Combinatorics.UPairsTree
   ( getNthPairCombination
   , combsOfDistinctUPairs
@@ -8,10 +10,13 @@ import Combinatorics.Common
 import Numeric.Natural
 import Data.List (delete)
 
-type Level = Int
-type Obj   = Natural
+type Level     = Int
+type ObjsCount = Natural
+type NthBranch = Natural
+type Index     = Natural
+type GroupSize = Natural
 
-data PTree = Node Obj [PTree]
+data PTree a = Node a [PTree a]
   deriving Show
 
 data Switch = F | S
@@ -34,17 +39,17 @@ data Switch = F | S
 --   and for each pair we want to exclude their commutation, so
 --   for each m pairs we divide by 2, thus we have 2^m
 
-pairsTree :: [Obj] -> PTree
+pairsTree :: forall a. Eq a => [a] -> PTree a
 pairsTree []     = error "empty list"
-pairsTree (x:xs) = aux F x 0 xs
+pairsTree (x:xs) = aux F x xs
   where
-    aux :: Switch -> Obj -> Level -> [Obj] -> PTree
-    aux S o l [] = Node o []
-    aux _ _ _ [] = error "there is an odd amount of objects"
-    aux S o l (x:xs) = Node o [aux F x (l+1) xs]
-    aux _ o l xs = Node o [aux S x (l+1) (delete x xs) | x <- xs]
+    aux :: Switch -> a -> [a] -> PTree a
+    aux S o [] = Node o []
+    aux _ _ [] = error "there is an odd amount of objects"
+    aux S o (x:xs) = Node o [aux F x xs]
+    aux _ o xs     = Node o [aux S x (delete x xs) | x <- xs]
 
-countBranches :: PTree -> Natural
+countBranches :: PTree a -> Natural
 countBranches (Node _ ts)
   | null ts = 1
   | otherwise = sum $ map countBranches ts
@@ -54,6 +59,7 @@ combsOfDistinctUPairs n =
   let m = n `div` 2
   in fac n `div` (fac m * 2 ^ m)
 
+numToPairTreeBranch :: ObjsCount -> NthBranch -> [Index]
 numToPairTreeBranch n i
   | odd n = error "odd number of objects"
   | n < 2 = error "number of objects must be at least 2"
@@ -61,9 +67,10 @@ numToPairTreeBranch n i
       let gs   = if n >= 4 then [n-2, n-4 .. 2] else []
           ns   = map combsOfDistinctUPairs gs
           maxi = combsOfDistinctUPairs n
-          i'   = i  `mod` maxi
+          i'   = i `mod` maxi
       in aux i' ns
   where
+    aux :: NthBranch -> [GroupSize] -> [Index]
     -- there is always only one possible way to choose the last pair
     aux _ [] = [0, 0]
     -- the extra zero is because first members of pairs are always fixed
@@ -71,13 +78,14 @@ numToPairTreeBranch n i
       let (q,r) = n `divMod` x
       in 0 : q : aux r xs
 
-getNthPairCombination :: [Obj] -> Natural -> [(Obj,Obj)]
+getNthPairCombination :: forall a. Eq a => [a] -> Natural -> [(a,a)]
 getNthPairCombination os i =
   let l = fromIntegral $ length os -- amount of objs
       t = [pairsTree os]
       b = numToPairTreeBranch l i
   in aux b t
   where
+    aux :: [Index] -> [PTree a] -> [(a,a)]
     aux [] _        = []
     aux (i:[]) _    = error "should have been even number of indices"
     aux (f:s:is) tr =

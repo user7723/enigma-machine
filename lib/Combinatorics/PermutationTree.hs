@@ -60,20 +60,12 @@ nthPermutation n xs = aux len nmod perms
   where
     perms = permute xs               :: Tree a
     len   = fromIntegral $ length xs :: Natural
-    nmod  = shrink len n             :: Natural
-
-    shrink :: Natural -> Natural -> Natural
-    shrink l idx =
-      let upBound = fac len
-      in if idx >= upBound
-         then idx `mod` upBound
-         else idx
+    nmod  = n `mod` fac len          :: Natural
 
     aux :: ListSize -> NthPerm -> Tree a -> [a]
     aux _ _ [] = []
     aux l np bs =
-      let i   = np `mod` l :: ListIndex
-          np' = np `div` l :: NthPerm -- for next sub-tree
+      let (np', i) = np `divMod` l
           (Branch x bs') = bs !! (fromIntegral i) -- unsafe
           l' = fromIntegral $ length bs' -- length of next sub-tree
       in x : aux l' np' bs'
