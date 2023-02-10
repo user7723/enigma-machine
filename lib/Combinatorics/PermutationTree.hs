@@ -5,9 +5,8 @@ module Combinatorics.PermutationTree
   ) where
 
 import Numeric.Natural
-import Combinatorics.Common(fac)
+import Data.List (delete)
 
-type ListSize  = Natural
 type NthPerm   = Natural
 
 data Branch a = Branch a (Tree a)
@@ -16,10 +15,9 @@ data Branch a = Branch a (Tree a)
 type Tree a = [Branch a]
 
 permute :: Eq a => [a] -> Tree a
-permute [] = []
 permute ns = do
   n <- ns
-  let ns' = [n' | n' <- ns, n' /= n]
+  let ns' = delete n ns
   return $ Branch n (permute ns')
 
 -- to choose 5th permutation in a tree you need sequentially
@@ -55,16 +53,12 @@ permute ns = do
 -- and is not assumed to grow so we can think that it actually
 -- does the computation in constant time
 nthPermutation :: forall a. Eq a => NthPerm -> [a] -> [a]
-nthPermutation n xs = aux len nmod perms
+nthPermutation n = aux n . permute
   where
-    perms = permute xs               :: Tree a
-    len   = fromIntegral $ length xs :: Natural
-    nmod  = n `mod` fac len          :: Natural
-
-    aux :: ListSize -> NthPerm -> Tree a -> [a]
-    aux _ _ [] = []
-    aux l np bs =
+    aux :: NthPerm -> Tree a -> [a]
+    aux _ [] = []
+    aux np bs =
       let (np', i) = np `divMod` l
           (Branch x bs') = bs !! (fromIntegral i) -- unsafe
-          l' = fromIntegral $ length bs' -- length of next sub-tree
-      in x : aux l' np' bs'
+          l = fromIntegral $ length bs -- length of next sub-tree
+      in x : aux np' bs'
