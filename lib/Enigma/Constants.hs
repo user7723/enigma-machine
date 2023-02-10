@@ -11,6 +11,7 @@ module Enigma.Constants
 
 import Numeric.Natural
 
+import Data.Word
 import Enigma.Aliases
 import Combinatorics.Common
 import Combinatorics.UPairsTree (combsOfDistinctUPairs)
@@ -24,7 +25,7 @@ import qualified Data.HashMap.Strict as M
 alphabet :: [Char]
 alphabet = map toEnum [32 .. 126] ++ ['\n']
 
-alphaMap :: (HashMap Symbol Char, HashMap Char Symbol)
+alphaMap :: (HashMap Pin Char, HashMap Char Pin)
 alphaMap =
   ( M.fromList $ zip [0..] alphabet
   , M.fromList $ zip alphabet [0..])
@@ -33,19 +34,19 @@ alphaMap =
 -- so we probably can make it big enough to encode the ascii range
 -- or at least some alpha-numerics with space symbols
 rotorSize :: Pin
-rotorSize = fromIntegral $ length alphabet
+rotorSize = length alphabet
 
-rotorsCount :: Natural
+rotorsCount :: Int
 rotorsCount = 3
 
 pins :: [Pin]
 pins = [0 .. rotorSize - 1]
 
 maxReflectorNumber :: SerialNumber
-maxReflectorNumber = combsOfDistinctUPairs rotorSize
+maxReflectorNumber = combsOfDistinctUPairs $ fromIntegral rotorSize
 
 maxRotorNumber :: SerialNumber
-maxRotorNumber = fac rotorSize
+maxRotorNumber = fac $ fromIntegral rotorSize
 
 maxMagazineState :: StateNumber
 maxMagazineState = rotorSize ^ rotorsCount

@@ -14,16 +14,16 @@ import Combinatorics.PermutationTree (nthPermutation)
 import Enigma.Constants (pins, rotorSize, rotorsCount)
 import Enigma.Aliases (SerialNumber, Pin, Offset, StateNumber, Overflow)
 
-import Data.HashMap.Strict (HashMap, (!))
-import qualified Data.HashMap.Strict as M
+import Data.Array.Unboxed (UArray, (!))
+import qualified Data.Array.Unboxed as A
 
 data RotorSide = L | R
 
 -- There is two maps because we need routes to go in
 -- opposite direction after reflection
 data Rotor = Rotor
-  { rLeft  :: HashMap Pin Pin
-  , rRigth :: HashMap Pin Pin
+  { rLeft  :: UArray Pin Pin
+  , rRigth :: UArray Pin Pin
   } deriving Show
 
 data RotorSt = RotorSt
@@ -36,8 +36,8 @@ data RotorSt = RotorSt
 -- it's their commutation that is mixed
 nthFactoryRotor :: SerialNumber -> Rotor
 nthFactoryRotor s = Rotor
-  (M.fromList $ zip pins ps)
-  (M.fromList $ zip ps pins)
+  (A.array (0, rotorSize - 1) $ zip pins ps)
+  (A.array (0, rotorSize - 1) $ zip ps pins)
   where
     ps = nthPermutation s pins
 

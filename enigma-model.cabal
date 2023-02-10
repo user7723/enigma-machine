@@ -22,6 +22,7 @@ library
       base ^>=4.16.3.0
     , text
     , unordered-containers
+    , array
     , raw-strings-qq
   hs-source-dirs:
     lib

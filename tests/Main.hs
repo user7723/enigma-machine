@@ -25,7 +25,7 @@ gRo = fromIntegral <$> (choose (0, fromIntegral maxRotorNumber - 1) :: Gen Integ
 gRe :: Gen Natural
 gRe = fromIntegral <$> (choose (0, fromIntegral maxReflectorNumber - 1) :: Gen Integer)
 
-gSt :: Gen Natural
+gSt :: Gen Int
 gSt = fromIntegral <$> (choose (0, fromIntegral maxMagazineState - 1) :: Gen Integer)
 
 instance Arbitrary Magazine where
