@@ -14,16 +14,16 @@ import Combinatorics.PermutationTree (nthPermutation)
 import Enigma.Constants (pins, rotorSize, rotorsCount)
 import Enigma.Aliases (SerialNumber, Pin, Offset, StateNumber, Overflow)
 
-import Data.Map (Map, (!))
-import qualified Data.Map as M
+import Data.HashMap.Strict (HashMap, (!))
+import qualified Data.HashMap.Strict as M
 
 data RotorSide = L | R
 
 -- There is two maps because we need routes to go in
 -- opposite direction after reflection
 data Rotor = Rotor
-  { rLeft  :: Map Pin Pin
-  , rRigth :: Map Pin Pin
+  { rLeft  :: HashMap Pin Pin
+  , rRigth :: HashMap Pin Pin
   } deriving Show
 
 data RotorSt = RotorSt

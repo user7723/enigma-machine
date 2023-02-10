@@ -3,8 +3,8 @@ module Enigma.Encryption
   , decrypt
   ) where
 
-import Data.Map (Map, (!))
-import qualified Data.Map as M
+import Data.HashMap.Strict ((!))
+import qualified Data.HashMap.Strict as M
 
 import Data.Maybe (catMaybes)
 

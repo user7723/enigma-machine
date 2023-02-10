@@ -7,14 +7,14 @@ module Enigma.Reflector
 import Numeric.Natural
 import Data.Tuple (swap)
 
-import Data.Map (Map)
-import qualified Data.Map as M
+import Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as M
 
 import Combinatorics.UPairsTree (getNthPairCombination)
 import Enigma.Constants (pins)
 import Enigma.Aliases (Pin, SerialNumber)
 
-type Reflector    = Map Pin Pin
+type Reflector = HashMap Pin Pin
 
 nthFactoryReflector :: SerialNumber -> Reflector
 nthFactoryReflector s =
