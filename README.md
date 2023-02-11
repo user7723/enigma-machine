@@ -3,11 +3,17 @@
 ### Description
 Enigma is a command line program that (relatively inefficiently) encrypts your data either from a file or from `<stdin>`, and writes its output to a specified file or to `<stdout>`. It does not abide by the constraint of 26 symbols from the original hardware implementation, and currently it maps not the characters, but the bytes that represent them, so it's capable of encrypting text constituted with any set of characters.
 
+### Installation
+The following command will install `enigma` binary into `~/.local/bin/` directory:
+```
+stack install
+```
+
+### Options
 It is supposed to be executed in the following way:
 ```
 $ enigma <RequiredArgs> [Options]
 ```
-### Options
 Options are defined like this:
   - `-h,--help` - print help message and exit
   - `-b,--bounds` - print max bounds of the enigma machine parameters,
