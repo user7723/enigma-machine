@@ -4,10 +4,7 @@
 module Main where
 
 import Test.QuickCheck
-import Data.Text (Text)
-import qualified Data.Text as T
 
-import Numeric.Natural
 import Enigma.Constants
 import Enigma.Aliases
 import Enigma.Reflector (Reflector, nthFactoryReflector)
@@ -15,18 +12,19 @@ import Enigma.Enigma (Enigma, initEnigma)
 import Enigma.Magazine (Magazine, initMagazine)
 import Enigma.Encryption (encrypt)
 
+import Data.Word (Word8)
 
-instance Arbitrary Natural where
-  arbitrary = (fromIntegral . abs) <$> (arbitrary :: Gen Integer)
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as B
 
-gRo :: Gen Natural
-gRo = fromIntegral <$> (choose (0, fromIntegral maxRotorNumber - 1) :: Gen Integer)
+gRo :: Gen Integer
+gRo = choose (0, maxRotorNumber - 1)
 
-gRe :: Gen Natural
-gRe = fromIntegral <$> (choose (0, fromIntegral maxReflectorNumber - 1) :: Gen Integer)
+gRe :: Gen Integer
+gRe = choose (0, maxReflectorNumber - 1)
 
 gSt :: Gen Int
-gSt = fromIntegral <$> (choose (0, fromIntegral maxMagazineState - 1) :: Gen Integer)
+gSt = choose (0, maxMagazineState - 1)
 
 instance Arbitrary Magazine where
   arbitrary = initMagazine <$> gRo <*> gRo <*> gRo
@@ -34,16 +32,22 @@ instance Arbitrary Magazine where
 instance Arbitrary Enigma where
   arbitrary = initEnigma <$> (nthFactoryReflector <$> gRe) <*> arbitrary <*> gSt
 
-alphChar :: Gen Char
-alphChar = elements alphabet
+alphChar :: Gen Word8
+alphChar = choose alphabetBounds
 
-instance Arbitrary Text where
-  arbitrary = resize (fromIntegral maxMagazineState + 100000) $ T.pack <$> listOf alphChar
+instance Arbitrary ByteString where
+  arbitrary
+    =  B.pack
+   <$> (resize (fromIntegral maxMagazineState + 1000)
+    $  listOf alphChar)
+
+prop_pack =
+  forAll alphChar $ \c -> (B.unpack $ B.pack [c]) == [c]
 
 prop_inverse =
   forAll ((,)
         <$> (arbitrary :: Gen Enigma)
-        <*> (arbitrary :: Gen Text)) $ \(e,t)->
+        <*> (arbitrary :: Gen ByteString)) $ \(e,t)->
   encrypt e (encrypt e t) == t
 
 main :: IO ()

@@ -61,4 +61,4 @@ test-suite tests
       base
     , QuickCheck
     , enigma-model
-    , text
+    , bytestring
