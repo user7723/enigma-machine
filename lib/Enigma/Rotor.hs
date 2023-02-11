@@ -8,11 +8,12 @@ module Enigma.Rotor
   , setRotorState
   , incStateNumber
   , splitState
+  , getRotorSide
   ) where
 
 import Combinatorics.PermutationTree (nthPermutation)
-import Enigma.Constants (pins, rotorSize, rotorsCount)
-import Enigma.Aliases (SerialNumber, Pin, Offset, StateNumber, Overflow)
+import Enigma.Constants (alphabetBounds, pins, rotorSize, rotorsCount)
+import Enigma.Aliases (Table, SerialNumber, Pin, Offset, StateNumber, Overflow)
 
 import Data.Array.Unboxed (UArray)
 import qualified Data.Array.Unboxed as A
@@ -36,8 +37,8 @@ data RotorSt = RotorSt
 -- it's their commutation that is mixed
 nthFactoryRotor :: SerialNumber -> Rotor
 nthFactoryRotor s = Rotor
-  (A.array (0, rotorSize - 1) $ zip pins ps)
-  (A.array (0, rotorSize - 1) $ zip ps pins)
+  (A.array alphabetBounds $ zip pins ps)
+  (A.array alphabetBounds $ zip ps pins)
   where
     ps = nthPermutation s pins
 
@@ -46,9 +47,8 @@ initNthRotor s = RotorSt 0 (nthFactoryRotor s)
 
 rotateRotor :: RotorSt -> (Overflow, RotorSt)
 rotateRotor (RotorSt o r) =
-  let o' = f o
+  let o' = o + 1
   in (o' < o, RotorSt o' r)
-  where f = (`mod` rotorSize) . (+1)
 
 setRotorState :: Offset -> RotorSt -> RotorSt
 setRotorState o (RotorSt _ r) = RotorSt o r
@@ -62,4 +62,8 @@ splitState s =
       (s1,x1) = s0 `divMod` rotorSize
       (s2,x2) = s1 `divMod` rotorSize
       (_ ,x3) = s2 `divMod` rotorSize
-  in (x1,x2,x3)
+  in (fromIntegral x1, fromIntegral x2, fromIntegral x3)
+
+getRotorSide :: RotorSide -> RotorSt -> Table
+getRotorSide L = rLeft . rotor
+getRotorSide R = rRigth . rotor

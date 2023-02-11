@@ -28,7 +28,7 @@ import Options.Parse (Option(..), parseOptions)
 
 bounds :: Text
 bounds = mconcat
-  [ "1. Alphabet in use:\n", T.pack $ show alphabet, "\n\n"
+  [ "1. Alphabet in use:\n", T.pack $ show alphabetBounds, "\n\n"
   , "2. Alphabet size (n):\n", T.pack $ show rotorSize, "\n\n"
   , "3. Max rotor serial number (n!):\n", T.pack $ show maxRotorNumber , "\n\n"
   , "4. Max reflector serial number (n!/(n/2)!*2^(n/2)):\n", T.pack $ show maxReflectorNumber , "\n\n"

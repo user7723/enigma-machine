@@ -15,4 +15,8 @@ rs="${r1},${r2},${r3}"
 re=203812309882137918237198757386487126498712643987126341209820984109238192
 st=88731
 
-enigma --rotors=$rs --reflector=$re --state=$st $inp $out
+if [ -n "$RTS" ] ; then
+  rts="+RTS $RTS -RTS"
+fi
+
+enigma $rts --rotors=$rs --reflector=$re --state=$st $inp $out

@@ -1,7 +1,6 @@
 module Enigma.Constants
   ( rotorSize
   , pins
-  , alphabet
   , maxReflectorNumber
   , maxRotorNumber
   , maxMagazineState
@@ -14,29 +13,26 @@ import Combinatorics.Common
 import Combinatorics.UPairsTree (combsOfDistinctUPairs)
 
 -- N.B. The amount of characters must be even
-alphaMax :: Char
-alphaMax = toEnum 255
+alphaMax :: Pin
+alphaMax = maxBound
 
-alphaMin :: Char
+alphaMin :: Pin
 alphaMin = minBound
 
-alphabet :: [Char]
-alphabet = [alphaMin .. alphaMax]
-
-alphabetBounds :: (Char, Char)
+alphabetBounds :: (Pin, Pin)
 alphabetBounds = (alphaMin, alphaMax)
 
 -- the rotor size can be safely adjusted as needed
 -- so we probably can make it big enough to encode the ascii range
 -- or at least some alpha-numerics with space symbols
-rotorSize :: Pin
-rotorSize = length alphabet
+rotorSize :: Int
+rotorSize = fromIntegral alphaMax + 1
 
 rotorsCount :: Int
 rotorsCount = 3
 
 pins :: [Pin]
-pins = [0 .. rotorSize - 1]
+pins = [alphaMin .. alphaMax]
 
 maxReflectorNumber :: SerialNumber
 maxReflectorNumber = combsOfDistinctUPairs $ fromIntegral rotorSize

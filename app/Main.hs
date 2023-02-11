@@ -2,7 +2,7 @@
 
 module Main where
 
-import qualified Data.Text.IO as T
+import qualified Data.ByteString as B
 
 import Control.Monad (unless)
 
@@ -20,9 +20,9 @@ main = do
   case mt of
     Nothing -> exitFail
     Just (enigma, inp, out) -> do
-      txt <- T.hGetContents inp
+      txt <- B.hGetContents inp
       let etxt = encrypt enigma txt
-      T.hPutStr out etxt
+      B.hPut out etxt
       inpc <- hIsClosed inp
       outc <- hIsClosed out
       unless (inpc || inp == stdin)  $ hClose inp

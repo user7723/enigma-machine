@@ -20,9 +20,10 @@ library
     Options.Interpret
   build-depends:
       base
-    , text
     , array
     , raw-strings-qq
+    , bytestring
+    , text
   hs-source-dirs:
     lib
   ghc-options:
@@ -38,7 +39,7 @@ executable enigma
   build-depends:
       base
     , enigma-model
-    , text
+    , bytestring
   ghc-options:
     -Wall
     -O2

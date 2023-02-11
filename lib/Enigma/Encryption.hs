@@ -1,45 +1,44 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Enigma.Encryption
   ( encrypt
   ) where
 
 import qualified Data.Array.Unboxed as A
 
-import qualified Data.Text as T
-import Data.Text (Text)
+
+import qualified Data.ByteString as B
+import Data.ByteString (ByteString)
 
 import Enigma.Aliases
 import Enigma.Constants (rotorSize, alphabetBounds)
 import Enigma.Enigma    (Enigma(..), incEnigmaState)
 import Enigma.Magazine  (Magazine(..), getRotors)
 import Enigma.Reflector (Reflector)
-import Enigma.Rotor     (Rotor(..), RotorSide(..), RotorSt(..))
+import Enigma.Rotor     (Rotor(..), RotorSide(..), RotorSt(..), getRotorSide)
 
 -- It's pretty safe to use it
 -- [mapWithOffset o1 o2 p | o1 <- pins, o2 <- pins, p <- pins]
 mapWithOffset :: Offset -> Offset -> Pin -> Pin
-mapWithOffset o1 o2 p = (rs + (o2 - o1) + p) `mod` rs
-  where rs = rotorSize
+mapWithOffset o1 o2 p = (o2 - o1) + p
 
-passRot :: RotorSt -> RotorSide -> Offset -> Pin -> (Pin, Offset)
-passRot rs lr o1 s =
-  let p = mapWithOffset o1 o2 s
-  in  (r A.! p, o2)
-  where
-    (o2,r) = case lr of
-      L -> (rOffset rs, rLeft $ rotor rs)
-      R -> (rOffset rs, rRigth $ rotor rs)
+passRot :: RotorSide -> RotorSt -> (Offset, Pin) -> (Offset, Pin)
+passRot lr rs (o1, p)
+  = (\o2 -> (o2, getRotorSide lr rs A.! mapWithOffset o1 o2 p))
+  $ rOffset rs
+
+swapOrder :: RotorSide -> (a,a,a) -> (a,a,a)
+swapOrder R t       = t
+swapOrder L (a,b,c) = (c,b,a)
 
 passMag :: Magazine -> RotorSide -> Pin -> Pin
-passMag m lr s =
-  let (s1,o1) = passRot r1 lr 0 s
-      (s2,o2) = passRot r2 lr o1 s1
-      (s3,o3) = passRot r3 lr o2 s2
-  in mapWithOffset o3 0 s3
-  where
-    rs@(r1', r2', r3') = getRotors m
-    (r1, r2, r3) = case lr of
-      L -> (r3', r2', r1')
-      _ -> rs
+passMag m lr p =
+  (\(r1,r2,r3)
+    -> uncurry (flip mapWithOffset 0)
+    $ passRot lr r3
+    $ passRot lr r2
+    $ passRot lr r1 (0, p)
+  ) $ swapOrder lr $ getRotors m
 
 right2left :: Magazine -> Pin -> Pin
 right2left m s = passMag m R s
@@ -54,25 +53,20 @@ left2right m s = passMag m L s
 -- so it becomes safe to use '!' operator, because rotors
 -- enumerate their pins from 0 up to 'rotorSize' non-inclusive
 passPin :: Enigma -> Pin -> (Enigma, Pin)
-passPin e s =
+passPin e p =
   ( incEnigmaState e
-  , passEnigma e (s `mod` rotorSize))
+  , passEnigma e p)
 
 passEnigma :: Enigma -> Pin -> Pin
-passEnigma e = left2right m . reflect re . right2left m
-  where
-    m  = magazine e
-    re = reflector e
+passEnigma Enigma{..}
+  = left2right magazine
+  . reflect    reflector
+  . right2left magazine
 
 -- mapAccumR ::
--- (Enigma -> Char -> (Enigma, Char)) -> Enigma -> Text -> (Enigma, Text)
-passPins :: Enigma -> Text -> (Enigma, Text)
-passPins = T.mapAccumR aux
-  where
-    aux :: Enigma -> Char -> (Enigma, Char)
-    aux e c
-      | A.inRange alphabetBounds c = fmap toEnum $ passPin e $ fromEnum c
-      | otherwise = (e, c)
+-- (Enigma -> Word8 -> (Enigma, Word8)) -> Enigma -> ByteString -> (Enigma, ByteString)
+passPins :: Enigma -> ByteString -> (Enigma, ByteString)
+passPins = B.mapAccumR passPin
 
-encrypt :: Enigma -> Text -> Text
+encrypt :: Enigma -> ByteString -> ByteString
 encrypt e = snd . passPins e
