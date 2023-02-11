@@ -47,7 +47,7 @@ reflect r s = r A.! s
 left2right :: Magazine -> Pin -> Pin
 left2right Magazine{..} p =
   (\(o3,o2,o1) (r3,r2,r1)
-  -> runThroughRotors (r1,r2,r3) (o1,o2,o3) p) magO magR
+  -> runThroughRotors (r1,r2,r3) (o1,o2,o3) p) magO magL
 {-# INLINE left2right #-}
 
 passEnigma :: Enigma -> Pin -> Pin
