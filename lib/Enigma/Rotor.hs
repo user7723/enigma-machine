@@ -14,7 +14,7 @@ import Combinatorics.PermutationTree (nthPermutation)
 import Enigma.Constants (pins, rotorSize, rotorsCount)
 import Enigma.Aliases (SerialNumber, Pin, Offset, StateNumber, Overflow)
 
-import Data.Array.Unboxed (UArray, (!))
+import Data.Array.Unboxed (UArray)
 import qualified Data.Array.Unboxed as A
 
 data RotorSide = L | R

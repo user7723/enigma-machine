@@ -4,10 +4,10 @@ module Combinatorics.PermutationTree
   ( nthPermutation
   ) where
 
-import Numeric.Natural
+--import Numeric.Integer
 import Data.List (delete)
 
-type NthPerm   = Natural
+type NthPerm   = Integer
 
 data Branch a = Branch a (Tree a)
   deriving Show

@@ -1,18 +1,15 @@
 module Enigma.Encryption
   ( encrypt
-  , decrypt
   ) where
 
 import qualified Data.Array.Unboxed as A
-
-import Data.Maybe (catMaybes)
 
 import qualified Data.Text as T
 import Data.Text (Text)
 
 import Enigma.Aliases
-import Enigma.Constants (rotorSize, alphabet, alphaMap, alphabetBounds)
-import Enigma.Enigma    (Enigma(..), nextEnigmaState)
+import Enigma.Constants (rotorSize, alphabetBounds)
+import Enigma.Enigma    (Enigma(..), incEnigmaState)
 import Enigma.Magazine  (Magazine(..), getRotors)
 import Enigma.Reflector (Reflector)
 import Enigma.Rotor     (Rotor(..), RotorSide(..), RotorSt(..))
@@ -20,13 +17,8 @@ import Enigma.Rotor     (Rotor(..), RotorSide(..), RotorSt(..))
 -- It's pretty safe to use it
 -- [mapWithOffset o1 o2 p | o1 <- pins, o2 <- pins, p <- pins]
 mapWithOffset :: Offset -> Offset -> Pin -> Pin
-mapWithOffset o1 o2 p = fromIntegral $
-  (rsi + (o2i - o1i) + pi) `mod` rsi
-  where
-    rsi = fromIntegral rotorSize :: Integer
-    pi  = fromIntegral p         :: Integer
-    o1i = fromIntegral o1        :: Integer
-    o2i = fromIntegral o2        :: Integer
+mapWithOffset o1 o2 p = (rs + (o2 - o1) + p) `mod` rs
+  where rs = rotorSize
 
 passRot :: RotorSt -> RotorSide -> Offset -> Pin -> (Pin, Offset)
 passRot rs lr o1 s =
@@ -61,13 +53,10 @@ left2right m s = passMag m L s
 -- 'PassPin' takes input symbol by modulo of 'rotorSize'
 -- so it becomes safe to use '!' operator, because rotors
 -- enumerate their pins from 0 up to 'rotorSize' non-inclusive
-passPin :: Enigma -> Pin -> (Pin, Enigma)
+passPin :: Enigma -> Pin -> (Enigma, Pin)
 passPin e s =
-  ( passEnigma e (s `mod` rotorSize)
-  , nextEnigmaState e)
-  where
-    m  = magazine e
-    re = reflector e
+  ( incEnigmaState e
+  , passEnigma e (s `mod` rotorSize))
 
 passEnigma :: Enigma -> Pin -> Pin
 passEnigma e = left2right m . reflect re . right2left m
@@ -75,34 +64,15 @@ passEnigma e = left2right m . reflect re . right2left m
     m  = magazine e
     re = reflector e
 
-passPins :: Enigma -> [Pin] -> ([Pin], Enigma)
-passPins e
-  = foldr aux ([],e)
+-- mapAccumR ::
+-- (Enigma -> Char -> (Enigma, Char)) -> Enigma -> Text -> (Enigma, Text)
+passPins :: Enigma -> Text -> (Enigma, Text)
+passPins = T.mapAccumR aux
   where
-    aux s (acc, e) =
-      let (s', e') = passPin e s
-      in (s':acc, e')
+    aux :: Enigma -> Char -> (Enigma, Char)
+    aux e c
+      | A.inRange alphabetBounds c = fmap toEnum $ passPin e $ fromEnum c
+      | otherwise = (e, c)
 
 encrypt :: Enigma -> Text -> Text
-encrypt e = translateFrom . fst . passPins e . translateTo
-
-decrypt :: Enigma -> Text -> Text
-decrypt = encrypt
-
-charToPin :: Char -> Maybe Pin
-charToPin c
-  | A.inRange alphabetBounds c = Just $ cs A.! c
-  | otherwise = Nothing
-  where
-    (_,cs) = alphaMap
-
-symbolToChar :: Pin -> Char
-symbolToChar = (sc A.!) . (`mod` rotorSize)
-  where
-    (sc,_) = alphaMap
-
-translateFrom :: [Pin] -> Text
-translateFrom = T.pack . map symbolToChar
-
-translateTo :: Text -> [Pin]
-translateTo = catMaybes . map charToPin . T.unpack
+encrypt e = snd . passPins e

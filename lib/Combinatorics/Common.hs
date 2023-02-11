@@ -3,9 +3,9 @@ module Combinatorics.Common
   , choose
   ) where
 
-import Numeric.Natural
+--import Numeric.Integer
 
-choose :: Eq a => Natural -> [a] -> [[a]]
+choose :: Eq a => Integer -> [a] -> [[a]]
 choose n xs
   | n == 0 = return []
   | otherwise = do
@@ -14,7 +14,7 @@ choose n xs
       rest <- choose (n - 1) xs'
       return $ x:rest
 
-fac :: Natural -> Natural
+fac :: Integer -> Integer
 fac = aux 1
   where
     aux a 0 = a

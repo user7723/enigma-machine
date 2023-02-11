@@ -5,16 +5,13 @@ module Options.Parse
 
 import qualified Data.Text as T
 import qualified Data.Text.Read as T
-import Data.Text (Text)
 
-import Data.Either (either)
 import Data.List (stripPrefix)
 import Control.Applicative (Alternative(..))
 import Control.Monad (when)
 
 
 import Enigma.Aliases
-import Enigma.Constants
 
 data Option
   = Help
@@ -62,6 +59,7 @@ parseRoSerial o = do
     $ traverse T.decimal ts
   where
     mkTriple (a:b:c:_) = (a,b,c)
+    mkTriple _ = error "you've probalby forgot about list size invariant"
 
 parseReSerial :: String -> Maybe Option
 parseReSerial o = do

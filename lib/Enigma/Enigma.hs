@@ -1,14 +1,12 @@
 module Enigma.Enigma
   ( Enigma(..)
   , initEnigma
-  , adjustEnigmaState
-  , nextEnigmaState
+  , incEnigmaState
   ) where
 
 import Enigma.Aliases
-import Enigma.Magazine  (Magazine(..) ,initMagazine, setMagazineState)
-import Enigma.Reflector (Reflector, nthFactoryReflector)
-import Enigma.Rotor     (incStateNumber)
+import Enigma.Magazine  (Magazine, incMagazineState, setMagazineState)
+import Enigma.Reflector (Reflector)
 
 data Enigma = Enigma
   { reflector :: Reflector
@@ -18,11 +16,7 @@ data Enigma = Enigma
 initEnigma :: Reflector -> Magazine -> StateNumber -> Enigma
 initEnigma r m sn = Enigma r (setMagazineState sn m)
 
-adjustEnigmaState :: Enigma -> StateNumber -> Enigma
-adjustEnigmaState e sn = e { magazine = (setMagazineState sn m) }
-  where m = magazine e
-
-nextEnigmaState :: Enigma -> Enigma
-nextEnigmaState e = adjustEnigmaState e (incStateNumber st)
-  where
-    st = mState $ magazine e
+incEnigmaState :: Enigma -> Enigma
+incEnigmaState e =
+  let m = magazine e
+  in e{magazine = incMagazineState m}

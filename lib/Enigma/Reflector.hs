@@ -4,7 +4,6 @@ module Enigma.Reflector
   , nthFactoryReflector
   ) where
 
-import Numeric.Natural
 import Data.Tuple (swap)
 
 import Data.Array.Unboxed (UArray)

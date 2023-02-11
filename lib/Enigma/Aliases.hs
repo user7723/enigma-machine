@@ -10,12 +10,11 @@ module Enigma.Aliases
   , OHandle
   ) where
 
-import Numeric.Natural
 import System.IO (Handle, FilePath)
 
 type Offset       = Int
 type StateNumber  = Int
-type SerialNumber = Natural
+type SerialNumber = Integer
 type Pin          = Int
 type Overflow     = Bool
 

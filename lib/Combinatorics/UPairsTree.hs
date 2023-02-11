@@ -3,17 +3,19 @@
 module Combinatorics.UPairsTree
   ( getNthPairCombination
   , combsOfDistinctUPairs
+  , pairsTree
+  , countBranches
   ) where
 
 import Combinatorics.Common
 
-import Numeric.Natural
+--import Numeric.Integer
 import Data.List (delete)
 
-type ObjsCount = Natural
-type NthBranch = Natural
-type Index     = Natural
-type GroupSize = Natural
+type ObjsCount = Integer
+type NthBranch = Integer
+type Index     = Integer
+type GroupSize = Integer
 
 data PTree a = Node a [PTree a]
   deriving Show
@@ -48,12 +50,12 @@ pairsTree (y:ys) = aux F y ys
     aux S o (x:xs) = Node o [aux F x xs]
     aux _ o xs     = Node o [aux S x' (delete x' xs) | x' <- xs]
 
-countBranches :: PTree a -> Natural
+countBranches :: PTree a -> Integer
 countBranches (Node _ ts)
   | null ts = 1
   | otherwise = sum $ map countBranches ts
 
-combsOfDistinctUPairs :: Natural -> Natural
+combsOfDistinctUPairs :: Integer -> Integer
 combsOfDistinctUPairs n =
   let m = n `div` 2
   in fac n `div` (fac m * 2 ^ m)
@@ -77,7 +79,7 @@ numToPairTreeBranch n i
       let (q,r) = nb `divMod` x
       in 0 : q : aux r xs
 
-getNthPairCombination :: forall a. Eq a => [a] -> Natural -> [(a,a)]
+getNthPairCombination :: forall a. Eq a => [a] -> Integer -> [(a,a)]
 getNthPairCombination os i =
   let l = fromIntegral $ length os -- amount of objs
       t = [pairsTree os]
