@@ -19,7 +19,7 @@ type Offset       = Word8
 type StateNumber  = Int
 type SerialNumber = Integer
 type Pin          = Word8
-type Overflow     = Bool
+type Overflow     = Word8
 type Table        = UArray Pin Pin
 
 type IFilePath = FilePath

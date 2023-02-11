@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Enigma.Enigma
   ( Enigma(..)
   , initEnigma
@@ -14,9 +16,9 @@ data Enigma = Enigma
   } deriving Show
 
 initEnigma :: Reflector -> Magazine -> StateNumber -> Enigma
-initEnigma r m sn = Enigma r (setMagazineState sn m)
+initEnigma r m s = Enigma r (setMagazineState m s)
 
 incEnigmaState :: Enigma -> Enigma
-incEnigmaState e =
-  let m = magazine e
-  in e{magazine = incMagazineState m}
+incEnigmaState e@Enigma{..} =
+  e { magazine = incMagazineState magazine }
+{-# INLINE incEnigmaState #-}
