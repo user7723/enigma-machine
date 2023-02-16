@@ -13,7 +13,7 @@ module Options.Parse
 import qualified Data.Text as T
 import qualified Data.Text.Read as T
 import Text.RawString.QQ
-
+ 
 import Options.Applicative
 import Enigma.Constants (boundsInfo)
 import Enigma.Aliases
@@ -159,20 +159,20 @@ data IOSpec = IOSpec
 parserIOSpec :: Parser IOSpec
 parserIOSpec = IOSpec <$> parserInputSpec <*> parserOutputSpec
 
-data InputSpec
-  = InputStd
-  | InputFile FilePath
-  deriving Show
+type InputSpec = Maybe FilePath
+
+stdInput :: InputSpec
+stdInput = Nothing
 
 inputHelp :: String
 inputHelp = "input file, default is <stdin>"
 
 parserInputStd :: Parser InputSpec
-parserInputStd = pure InputStd
+parserInputStd = pure stdInput
 
 parserInputFile :: Parser InputSpec
 parserInputFile
-   =  InputFile
+   =  Just
   <$> strOption
         (  long "input-file"
         <> short 'i'
@@ -183,20 +183,20 @@ parserInputFile
 parserInputSpec :: Parser InputSpec
 parserInputSpec = parserInputFile <|> parserInputStd
 
-data OutputSpec
-  = OutputStd
-  | OutputFile FilePath
-  deriving Show
+type OutputSpec = Maybe FilePath
+
+stdOutput :: OutputSpec
+stdOutput = Nothing
 
 outputHelp :: String
 outputHelp = "output file, default is <stdout>"
 
 parserOutputStd :: Parser OutputSpec
-parserOutputStd = pure OutputStd
+parserOutputStd = pure stdOutput
 
 parserOutputFile :: Parser OutputSpec
 parserOutputFile
-   =  OutputFile
+   = Just
   <$> strOption
         (  long "output-file"
         <> short 'o'
