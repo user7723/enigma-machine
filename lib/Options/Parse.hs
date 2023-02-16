@@ -3,6 +3,7 @@ module Options.Parse
   , EnigmaSpec(..)
   , EnigmaSpecOpt(..)
   , EnigmaSpecFile(..)
+  , Rots(..)
   , IOSpec(..)
   , InputSpec(..)
   , OutputSpec(..)
@@ -134,22 +135,19 @@ parserRot3 = parserSerial "third-rotor" '3'
 parserRots :: Parser Rots
 parserRots = Rots <$> parserRot1 <*> parserRot2 <*> parserRot3
 
-newtype EnigmaSpecFile = EnigmaSpecFile
-  { enigmaSpecFile :: FilePath
-  } deriving Show
+type EnigmaSpecFile = FilePath
 
 configHelp :: String
 configHelp = "ini file"
 
 parserEnigmaSpecFile :: Parser EnigmaSpecFile
 parserEnigmaSpecFile
-   =  EnigmaSpecFile
-  <$> strOption
-        (  long "config-file"
-        <> short 'c'
-        <> metavar "<ConfigFile>"
-        <> help configHelp
-        )
+   = strOption
+       (  long "config-file"
+       <> short 'c'
+       <> metavar "<ConfigFile>"
+       <> help configHelp
+       )
 
 data IOSpec = IOSpec
   { inputSpec  :: InputSpec
