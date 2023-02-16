@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Main where
 
@@ -10,20 +10,25 @@ import System.Environment (getArgs)
 import System.IO (hClose, hIsClosed, stdout, stdin)
 
 import Enigma.Encryption (encrypt)
-
-import Options.Interpret (runArgs, exitFail)
+import Options.Interpret
+  ( Program(..)
+  , ProgramIO(..)
+  , interpretProgSpec
+  )
+import Options.Parse (runArgs)
 
 main :: IO ()
 main = do
-  args <- getArgs
-  mt <- runArgs args
-  case mt of
-    Nothing -> exitFail
-    Just (enigma, inp, out) -> do
-      txt <- B.hGetContents inp
-      let etxt = encrypt enigma txt
-      B.hPut out etxt
-      inpc <- hIsClosed inp
-      outc <- hIsClosed out
-      unless (inpc || inp == stdin)  $ hClose inp
-      unless (outc || out == stdout) $ hClose out
+  pspec <- runArgs
+  Program{..} <- interpretProgSpec pspec
+  let ProgramIO{..} = progIO
+
+  txt <- B.hGetContents progInput
+  let etxt = encrypt progEnigma txt
+  B.hPut progOutput etxt
+
+  inpc <- hIsClosed progInput
+  unless (inpc || progInput == stdin)   $ hClose progInput
+
+  outc <- hIsClosed progOutput
+  unless (outc || progOutput == stdout) $ hClose progOutput
