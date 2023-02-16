@@ -3,8 +3,6 @@ module Combinatorics.Common
   , choose
   ) where
 
---import Numeric.Integer
-
 choose :: Eq a => Integer -> [a] -> [[a]]
 choose n xs
   | n == 0 = return []
@@ -20,4 +18,3 @@ fac = aux 1
     aux a 0 = a
     aux a 1 = a
     aux a n = aux (a*n) (n-1)
-

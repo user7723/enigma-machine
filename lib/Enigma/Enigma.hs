@@ -21,4 +21,5 @@ initEnigma r m s = Enigma r (setMagazineState m s)
 incEnigmaState :: Enigma -> Enigma
 incEnigmaState e@Enigma{..} =
   e { magazine = incMagazineState magazine }
+
 {-# INLINE incEnigmaState #-}

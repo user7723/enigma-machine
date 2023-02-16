@@ -53,4 +53,3 @@ prop_inverse =
 main :: IO ()
 main = do
   quickCheck prop_inverse
-
