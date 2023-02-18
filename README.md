@@ -123,7 +123,7 @@ Concrete example can be found in the `enigma.conf`
 
 ```
 ConfigFile
-  = Space , ("rotors" | "re")
+  = Space , ("rotors" | "ro")
   , Space , Number
   , Space , Number
   , Space , Number
