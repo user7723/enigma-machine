@@ -19,6 +19,7 @@ library
     Options.Parse
     Options.Interpret
     Options.Interact
+    Options.ConfigFile
   build-depends:
       base
     , array
