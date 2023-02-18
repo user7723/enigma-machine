@@ -28,6 +28,8 @@ library
     , text
     , mtl
     , optparse-applicative
+    , megaparsec
+    , parser-combinators
   hs-source-dirs:
     lib
   ghc-options:

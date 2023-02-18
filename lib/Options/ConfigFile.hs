@@ -1,29 +1,81 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
+
 module Options.ConfigFile
-  (
+  ( readConfig
   ) where
 
-import Options.Parse (EnigmaSpec(..), EnigmaSpecOpt(..))
-import Control.Exception (Exception, throwIO)
+import Enigma.Aliases
+import Options.Parse
+  ( EnigmaSpec(..)
+  , EnigmaSpecOpt(..)
+  , Rots(..)
+  )
 
-import Data.Either (either)
+import Control.Monad (void)
+import Data.Void
+import System.Exit (exitWith, ExitCode(..))
+
+import qualified Text.Megaparsec as M
+import qualified Text.Megaparsec.Char as M
+import qualified Text.Megaparsec.Char.Lexer as L
+import qualified Text.Megaparsec.Error as E
+import qualified Control.Monad.Combinators as C
+import Control.Monad.Combinators ((<|>))
+
 import Data.Text (Text)
-import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
 readConfig :: FilePath -> IO EnigmaSpec
 readConfig cf = do
-  es <- T.readFile cf >>= pure . parseConfig
-  either throwIO pure es
+  i  <- T.readFile cf
+  case M.parse parseConfig cf i of
+    Right es -> pure $ EnigmaSpecO es
+    Left e   -> putStrLn (E.errorBundlePretty e)
+             >> exitWith (ExitFailure 1)
 
-instance Exception ConfigError
-data ConfigError = ConfigError
-  deriving Show
+type Parser = M.Parsec Void Text
 
--- EnigmaSpecO :: EnigmaSpecOpt -> EnigmaSpec
--- data EnigmaSpecOpt = EnigmaSpecOpt
---   { rotorNumbers    :: Rots
---   , reflectorNumber :: SerialNumber
---   , stateNumber     :: StateNumber
---   } deriving Show
-parseConfig :: Text -> Either ConfigError EnigmaSpec
-parseConfig = undefined
+parseConfig :: Parser EnigmaSpecOpt
+parseConfig = do
+  void $ space
+  ro <- parseRotorNumbers
+  re <- parseReflectorNumber
+  st <- parseStateNumber
+  pure $ EnigmaSpecOpt ro re st
+parseRotorNumbers :: Parser Rots
+parseRotorNumbers = do
+  void $ parseTag "rotors" "ro"
+  C.many parseNumber >>= \case
+    (r1:r2:r3:_) -> return $ Rots
+      { rot1 = r1
+      , rot2 = r2
+      , rot3 = r3
+      }
+    _            -> fail "expected three serial numbers for Enigma rotors"
+
+parseReflectorNumber :: Parser SerialNumber
+parseReflectorNumber = parseTag "reflector" "re" >> parseNumber
+
+parseStateNumber :: Parser StateNumber
+parseStateNumber = parseTag "state" "st" >> parseNumber
+
+parseNumber :: (Read a, Integral a) => Parser a
+parseNumber = do
+  n <- lexeme $ C.some M.digitChar
+  return $ read n
+
+type Tag = Text
+type Alias = Text
+
+parseTag :: Tag -> Alias -> Parser Text
+parseTag t a = lexeme (M.string' t <|> M.string' a)
+
+space :: Parser ()
+space = L.space
+  M.space1
+  (L.skipLineComment "#")
+  (L.skipBlockComment "##"  "##")
+
+lexeme :: Parser a -> Parser a
+lexeme = L.lexeme space

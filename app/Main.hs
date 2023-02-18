@@ -6,7 +6,6 @@ import qualified Data.ByteString as B
 
 import Control.Monad (unless)
 
-import System.Environment (getArgs)
 import System.IO (hClose, hIsClosed, stdout, stdin)
 
 import Enigma.Encryption (encrypt)

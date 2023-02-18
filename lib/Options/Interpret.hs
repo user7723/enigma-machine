@@ -6,21 +6,16 @@ module Options.Interpret
   , ProgramIO(..)
   ) where
 
-import qualified Data.ByteString as B
 import System.IO (stdin, stdout, openFile, IOMode(..))
 
 import Options.Parse
   ( ProgSpec(..)
   , EnigmaSpec(..)
   , EnigmaSpecOpt(..)
-  , EnigmaSpecFile(..)
   , IOSpec(..)
-  , InputSpec(..)
-  , OutputSpec(..)
   , Rots(..)
-  , parserOpts
-  , runArgs
   )
+import Options.ConfigFile (readConfig)
 import Options.Interact (interactiveReadSpec)
 import Enigma.Aliases (IHandle, OHandle)
 import Enigma.Enigma (Enigma, initEnigma)
@@ -68,4 +63,4 @@ interpretEnigmaSpec (EnigmaSpecO EnigmaSpecOpt{..})
     re  = nthFactoryReflector reflectorNumber
 
 configFileReadSpec :: FilePath -> IO Enigma
-configFileReadSpec = undefined
+configFileReadSpec c = readConfig c >>= interpretEnigmaSpec
