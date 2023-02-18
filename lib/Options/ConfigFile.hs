@@ -43,8 +43,9 @@ parseConfig = do
   re <- parseReflectorNumber
   st <- parseStateNumber
   pure $ EnigmaSpecOpt ro re st
+
 parseRotorNumbers :: Parser Rots
-parseRotorNumbers = do
+parseRotorNumbers = lexeme $ do
   void $ parseTag "rotors" "ro"
   C.many parseNumber >>= \case
     (r1:r2:r3:_) -> return $ Rots
@@ -55,14 +56,14 @@ parseRotorNumbers = do
     _            -> fail "expected three serial numbers for Enigma rotors"
 
 parseReflectorNumber :: Parser SerialNumber
-parseReflectorNumber = parseTag "reflector" "re" >> parseNumber
+parseReflectorNumber = lexeme $ parseTag "reflector" "re" >> parseNumber
 
 parseStateNumber :: Parser StateNumber
-parseStateNumber = parseTag "state" "st" >> parseNumber
+parseStateNumber = lexeme $ parseTag "state" "st" >> parseNumber
 
 parseNumber :: (Read a, Integral a) => Parser a
-parseNumber = do
-  n <- lexeme $ C.some M.digitChar
+parseNumber = lexeme $ do
+  n <- C.some M.digitChar
   return $ read n
 
 type Tag = Text
@@ -74,8 +75,8 @@ parseTag t a = lexeme (M.string' t <|> M.string' a)
 space :: Parser ()
 space = L.space
   M.space1
-  (L.skipLineComment "#")
-  (L.skipBlockComment "##"  "##")
+  (L.skipLineComment "//")
+  (L.skipBlockComment "/*"  "*/")
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme space
