@@ -68,7 +68,7 @@ The above process can be illustrated with simple table that shows a mapping proc
 
 `CurrentSt>` row marks current state of all rotors
 
-The table denotes the flow of input signal through `pin 0` of the input plate `i` which was mapped to rotor `r1` that was ticked three times. In the illustration the mapping between neighbouring rotors is linear, but in the abstract representation we do not rotate anything, but calculate that mapping with given offsets using formula `(s₁-s₀) + bᵢ`. In the first mapping between the input plate and the first rotor we substitute 3 (the state of `r₁`) in place of `s₁` and 0 (the state of input plate) in place of `s₀` and add 0 - the input pin `b₀`
+The below table denotes flow of the input signal through `pin 0` of the input plate `i` which was mapped to rotor `r1` that was ticked three times. In the illustration the mapping between neighbouring rotors is linear, but in the abstract representation we do not rotate anything, but calculate that mapping with given offsets using formula `(s₁-s₀) + bᵢ`. In the first mapping between the input plate and the first rotor we substitute 3 (the state of `r₁`) in place of `s₁` and 0 (the state of input plate) in place of `s₀` and add 0 - the input pin `b₀`
 
 ```
 +------------+-+-------------------+--+-------------------+--+-------------------+--+-------------------+-+
