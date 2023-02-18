@@ -119,6 +119,8 @@ The `enigma` can be run with the following command line options:
 
 ### Configuration file syntax
 
+Concrete example can be found in the `enigma.conf`
+
 ```
 ConfigFile
   = Space , ("rotors" | "re")
@@ -139,18 +141,18 @@ Comment = LineComment
         | BlockComment
 
 LineComment
-  = "#"
+  = "//"
   , {<AnyExcept LineCommentTerminal>}
   , (LineCommentTerminal | <EOF>)
 
 LineCommentTerminal = "\n"
 
 BlockComment
-  = "##"
+  = "/*"
   , {<AnyExcept BlockCommentTerminal>}
   , BlockCommentTerminal
 
-BlockCommentTerminal = "##"
+BlockCommentTerminal = "*/"
 
 SpaceChar = " " | "\t" | "\n" |
 
