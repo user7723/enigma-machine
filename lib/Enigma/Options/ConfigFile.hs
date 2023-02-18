@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Options.ConfigFile
+module Enigma.Options.ConfigFile
   ( readConfig
   ) where
 
 import Enigma.Aliases
-import Options.Parse
+import Enigma.Options.Parse
   ( EnigmaSpec(..)
   , EnigmaSpecOpt(..)
   , Rots(..)

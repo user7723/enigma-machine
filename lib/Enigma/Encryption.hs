@@ -10,7 +10,7 @@ import qualified Data.ByteString as B
 import Data.ByteString (ByteString)
 
 import Enigma.Aliases
-import Enigma.Enigma    (Enigma(..), incEnigmaState)
+import Enigma (Enigma(..), incEnigmaState)
 import Enigma.Magazine  (Magazine(..))
 import Enigma.Reflector (Reflector)
 

@@ -1,24 +1,23 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Options.Interpret
+module Enigma.Options.Interpret
   ( interpretProgSpec
   , Program(..)
   , ProgramIO(..)
   ) where
 
-import System.IO (stdin, stdout, openFile, IOMode(..))
+import System.IO (Handle, stdin, stdout, openFile, IOMode(..))
 
-import Options.Parse
+import Enigma.Options.Parse
   ( ProgSpec(..)
   , EnigmaSpec(..)
   , EnigmaSpecOpt(..)
   , IOSpec(..)
   , Rots(..)
   )
-import Options.ConfigFile (readConfig)
-import Options.Interact (interactiveReadSpec)
-import Enigma.Aliases (IHandle, OHandle)
-import Enigma.Enigma (Enigma, initEnigma)
+import Enigma.Options.ConfigFile (readConfig)
+import Enigma.Options.Interact (interactiveReadSpec)
+import Enigma (Enigma, initEnigma)
 import Enigma.Magazine (initMagazine)
 import Enigma.Reflector (nthFactoryReflector)
 
@@ -37,8 +36,8 @@ interpretProgSpec ProgSpec{..} = do
     }
 
 data ProgramIO = ProgramIO
-  { progInput  :: IHandle
-  , progOutput :: OHandle
+  { progInput  :: Handle
+  , progOutput :: Handle
   } deriving Show
 
 interpretIOSpec :: IOSpec -> IO ProgramIO

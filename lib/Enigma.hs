@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Enigma.Enigma
+module Enigma
   ( Enigma(..)
   , initEnigma
   , incEnigmaState

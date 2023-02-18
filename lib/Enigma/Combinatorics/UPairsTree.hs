@@ -1,13 +1,13 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Combinatorics.UPairsTree
+module Enigma.Combinatorics.UPairsTree
   ( getNthPairCombination
   , combsOfDistinctUPairs
   , pairsTree
   , countBranches
   ) where
 
-import Combinatorics.Common
+import Enigma.Combinatorics.Common
 
 --import Numeric.Integer
 import Data.List (delete)

@@ -1,21 +1,21 @@
-module Options.Parse
+module Enigma.Options.Parse
   ( ProgSpec(..)
   , EnigmaSpec(..)
   , EnigmaSpecOpt(..)
-  , EnigmaSpecFile(..)
+  , EnigmaSpecFile
   , Rots(..)
   , IOSpec(..)
-  , InputSpec(..)
-  , OutputSpec(..)
+  , InputSpec
+  , OutputSpec
   , parserOpts
   , runArgs
   ) where
 
 import qualified Data.Text as T
 import qualified Data.Text.Read as T
-import Text.RawString.QQ
- 
+
 import Options.Applicative
+
 import Enigma.Constants (boundsInfo)
 import Enigma.Aliases
 

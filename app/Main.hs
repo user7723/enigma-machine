@@ -9,12 +9,12 @@ import Control.Monad (unless)
 import System.IO (hClose, hIsClosed, stdout, stdin)
 
 import Enigma.Encryption (encrypt)
-import Options.Interpret
+import Enigma.Options.Interpret
   ( Program(..)
   , ProgramIO(..)
   , interpretProgSpec
   )
-import Options.Parse (runArgs)
+import Enigma.Options.Parse (runArgs)
 
 main :: IO ()
 main = do

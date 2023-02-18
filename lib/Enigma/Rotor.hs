@@ -3,7 +3,7 @@ module Enigma.Rotor
   , nthFactoryRotor
   ) where
 
-import Combinatorics.PermutationTree (nthPermutation)
+import Enigma.Combinatorics.PermutationTree (nthPermutation)
 import Enigma.Constants (alphabetBounds, pins)
 import Enigma.Aliases (Table, SerialNumber)
 

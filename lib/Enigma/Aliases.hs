@@ -5,13 +5,8 @@ module Enigma.Aliases
   , Pin
   , Overflow
   , Table
-  , IFilePath
-  , OFilePath
-  , IHandle
-  , OHandle
   ) where
 
-import System.IO (Handle, FilePath)
 import Data.Word (Word8)
 import Data.Array.Unboxed (UArray)
 
@@ -21,8 +16,3 @@ type SerialNumber = Integer
 type Pin          = Word8
 type Overflow     = Word8
 type Table        = UArray Pin Pin
-
-type IFilePath = FilePath
-type OFilePath = FilePath
-type IHandle   = Handle
-type OHandle   = Handle

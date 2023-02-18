@@ -1,10 +1,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Combinatorics.PermutationTree
+module Enigma.Combinatorics.PermutationTree
   ( nthPermutation
   ) where
 
---import Numeric.Integer
 import Data.List (delete)
 
 type NthPerm   = Integer

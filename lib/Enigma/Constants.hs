@@ -10,8 +10,8 @@ module Enigma.Constants
   ) where
 
 import Enigma.Aliases
-import Combinatorics.Common
-import Combinatorics.UPairsTree (combsOfDistinctUPairs)
+import Enigma.Combinatorics.Common
+import Enigma.Combinatorics.UPairsTree (combsOfDistinctUPairs)
 
 -- N.B. The amount of characters must be even
 alphaMax :: Pin

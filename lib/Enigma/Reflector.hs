@@ -10,7 +10,7 @@ import Data.Array.Unboxed (UArray)
 import qualified Data.Array.Unboxed as A
 
 
-import Combinatorics.UPairsTree (getNthPairCombination)
+import Enigma.Combinatorics.UPairsTree (getNthPairCombination)
 import Enigma.Constants (pins)
 import Enigma.Aliases (Pin, SerialNumber)
 

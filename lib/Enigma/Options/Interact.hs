@@ -1,4 +1,4 @@
-module Options.Interact
+module Enigma.Options.Interact
   ( interactiveReadSpec
   ) where
 
@@ -9,13 +9,10 @@ import System.IO (hSetBuffering, BufferMode(..), stdout)
 import Enigma.Aliases
   ( SerialNumber
   , StateNumber
-  , IHandle
-  , OHandle
   )
-import Enigma.Magazine (Magazine, initMagazine)
-import Enigma.Enigma (Enigma, initEnigma)
-import Enigma.Reflector (Reflector, nthFactoryReflector)
-import Enigma.Rotor (Rotor, nthFactoryRotor)
+import Enigma.Magazine (initMagazine)
+import Enigma (Enigma, initEnigma)
+import Enigma.Reflector (nthFactoryReflector)
 import Enigma.Constants
   ( maxRotorNumber
   , maxReflectorNumber
@@ -66,7 +63,7 @@ type Prompt = String
 getNumber :: (Read a, Integral a) => Prompt -> IO a
 getNumber p = do
   putStr p
-  ln <- getLine 
+  ln <- getLine
   either
     (const $ getNumber p)
     return

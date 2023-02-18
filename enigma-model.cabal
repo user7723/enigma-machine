@@ -6,20 +6,20 @@ maintainer:         jmp.loop@kittens.org
 
 library
   exposed-modules:
-    Enigma.Constants
+    Enigma
     Enigma.Aliases
-    Enigma.Rotor
-    Enigma.Reflector
-    Enigma.Magazine
-    Enigma.Enigma
+    Enigma.Constants
     Enigma.Encryption
-    Combinatorics.Common
-    Combinatorics.PermutationTree
-    Combinatorics.UPairsTree
-    Options.Parse
-    Options.Interpret
-    Options.Interact
-    Options.ConfigFile
+    Enigma.Magazine
+    Enigma.Reflector
+    Enigma.Rotor
+    Enigma.Combinatorics.Common
+    Enigma.Combinatorics.PermutationTree
+    Enigma.Combinatorics.UPairsTree
+    Enigma.Options.Parse
+    Enigma.Options.ConfigFile
+    Enigma.Options.Interact
+    Enigma.Options.Interpret
   build-depends:
       base
     , array
