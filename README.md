@@ -103,7 +103,7 @@ stack install
   - using configuration file - you simply pass a file path to `-c` option. The file must conform to the configuration file syntax (see below)
   - interactively - in case if you will use neither of the above methods, you'll be asked interactively to assign all the necessary parameters
 
-# Command line options
+### Command line options
 
 The `enigma` can be run with the following command line options:
   - `-b,--bounds-info` - print max bounds of the enigma machine parameters, and other additional information
@@ -119,17 +119,36 @@ The `enigma` can be run with the following command line options:
 
 ### Configuration file syntax
 
+Configuration file must contain at least one specification for each of these parameters:
+
+  - Rotors
+  - Reflector
+  - State
+
+The parameters may occur in any order and in any non-zero amount, but only the first occurence will be taken into account.
+
 Concrete example can be found in the `enigma.conf`
 
 ```
 ConfigFile
+  = <Permutation Rotors    , {Rotors}
+               , Reflector , {Reflector}
+               , State     , {State} >
+
+Parameter = Rotors | Reflector | State
+
+Rotors
   = Space , ("rotors" | "re")
   , Space , Number
   , Space , Number
   , Space , Number
-  , Space , ("reflector" | "re")
+
+Reflector
+  = Space , ("reflector" | "re")
   , Space , Number
-  , Space , ("state" | "st")
+
+State
+  = Space , ("state" | "st")
   , Space , Number
   , Space
 

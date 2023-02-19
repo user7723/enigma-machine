@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Enigma.Options.ConfigFile
   ( readConfig
@@ -26,6 +27,35 @@ import Control.Monad.Combinators ((<|>))
 import Data.Text (Text)
 import qualified Data.Text.IO as T
 
+import Data.List (nub, sort)
+
+data EnigmaParam = Ro Rots | Re SerialNumber | St StateNumber
+
+instance Show EnigmaParam where
+  show (Re re) = "Reflector:\n" ++ show re
+  show (St st) = "State:\n" ++ show st
+  show (Ro Rots{..}) = concat
+    [ "Rotor1:\n" , show rot1 , "\n"
+    , "Rotor2:\n" , show rot2 , "\n"
+    , "Rotor3:\n" , show rot3
+    ]
+
+instance Eq EnigmaParam where
+  Ro _ == Ro _ = True
+  Re _ == Re _ = True
+  St _ == St _ = True
+  _    == _    = False
+
+instance Ord EnigmaParam where
+  compare (Ro _) (Ro _) = EQ
+  compare (Re _) (Re _) = EQ
+  compare (St _) (St _) = EQ
+
+  compare (Ro _) _      = LT
+  compare (Re _) (Ro _) = GT
+  compare (Re _) (St _) = LT
+  compare (St _) _      = GT
+
 readConfig :: FilePath -> IO EnigmaSpec
 readConfig cf = do
   i  <- T.readFile cf
@@ -36,13 +66,30 @@ readConfig cf = do
 
 type Parser = M.Parsec Void Text
 
+guardParams :: [EnigmaParam] -> Parser EnigmaSpecOpt
+guardParams ((Ro ro):(Re re):(St st):_) = return $ EnigmaSpecOpt ro re st
+guardParams ps
+  = fail msg
+  where
+    l = length ps
+    msg = concat
+      [ "you've provided not enough parameters there should be three, but "
+      , show l , " was given. "
+      , "Only those were read from the file: \n"
+      , unlines $ map show ps
+      ]
+
 parseConfig :: Parser EnigmaSpecOpt
 parseConfig = do
   void $ space
-  ro <- parseRotorNumbers
-  re <- parseReflectorNumber
-  st <- parseStateNumber
-  pure $ EnigmaSpecOpt ro re st
+  C.many parseEnigmaParam >>= guardParams . sort . nub
+
+parseEnigmaParam :: Parser EnigmaParam
+parseEnigmaParam
+   =  lexeme
+   $  fmap Ro parseRotorNumbers
+  <|> fmap Re parseReflectorNumber
+  <|> fmap St parseStateNumber
 
 parseRotorNumbers :: Parser Rots
 parseRotorNumbers = lexeme $ do
