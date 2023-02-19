@@ -138,7 +138,7 @@ ConfigFile
 Parameter = Rotors | Reflector | State
 
 Rotors
-  = Space , ("rotors" | "re")
+  = Space , ("rotors" | "ro")
   , Space , Number
   , Space , Number
   , Space , Number
