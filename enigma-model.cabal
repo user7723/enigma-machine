@@ -23,7 +23,6 @@ library
   build-depends:
       base
     , array
-    , raw-strings-qq
     , bytestring
     , text
     , mtl
