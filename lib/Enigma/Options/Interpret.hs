@@ -15,7 +15,7 @@ import Enigma.Options.Parse
   , IOSpec(..)
   , Rots(..)
   )
-import Enigma.Options.ConfigFile (readConfig)
+import Enigma.Options.ConfigFile (readConfig, generateConfig)
 import Enigma.Options.Interact (interactiveReadSpec)
 import Enigma (Enigma, initEnigma)
 import Enigma.Magazine (initMagazine)
@@ -54,6 +54,9 @@ interpretEnigmaSpec EnigmaSpecI
   = interactiveReadSpec
 interpretEnigmaSpec (EnigmaSpecF specFilePath)
   = configFileReadSpec specFilePath
+interpretEnigmaSpec (EnigmaSpecA specFilePath)
+  = do generateConfig specFilePath
+       interpretEnigmaSpec $ EnigmaSpecF specFilePath
 interpretEnigmaSpec (EnigmaSpecO EnigmaSpecOpt{..})
   = return $ initEnigma re mag stateNumber
   where

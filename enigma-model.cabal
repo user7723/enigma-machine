@@ -29,6 +29,7 @@ library
     , optparse-applicative
     , megaparsec
     , parser-combinators
+    , random
   hs-source-dirs:
     lib
   ghc-options:

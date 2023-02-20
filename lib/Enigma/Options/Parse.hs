@@ -59,17 +59,25 @@ parserBoundsInfo
 data EnigmaSpec
   = EnigmaSpecO EnigmaSpecOpt
   | EnigmaSpecF EnigmaSpecFile
+  | EnigmaSpecA EnigmaSpecArbitrary
   | EnigmaSpecI
   deriving Show
 
 parserEnigmaSpec :: Parser EnigmaSpec
-parserEnigmaSpec = parserEnigmaSpecO <|> parserEnigmaSpecF <|> parserEnigmaSpecI
+parserEnigmaSpec
+   =  parserEnigmaSpecO
+  <|> parserEnigmaSpecF
+  <|> parserEnigmaSpecA
+  <|> parserEnigmaSpecI
 
 parserEnigmaSpecO :: Parser EnigmaSpec
 parserEnigmaSpecO = EnigmaSpecO <$> parserEnigmaSpecOpt
 
 parserEnigmaSpecF :: Parser EnigmaSpec
 parserEnigmaSpecF = EnigmaSpecF <$> parserEnigmaSpecFile
+
+parserEnigmaSpecA :: Parser EnigmaSpec
+parserEnigmaSpecA = EnigmaSpecA <$> parserEnigmaSpecArbitrary
 
 parserEnigmaSpecI :: Parser EnigmaSpec
 parserEnigmaSpecI = pure EnigmaSpecI
@@ -135,10 +143,24 @@ parserRot3 = parserSerial "third-rotor" '3'
 parserRots :: Parser Rots
 parserRots = Rots <$> parserRot1 <*> parserRot2 <*> parserRot3
 
+type EnigmaSpecArbitrary = FilePath
+
+arbitraryHelp :: String
+arbitraryHelp = "generate configuration file save it to <ConfigFile> and use it for encryption"
+
+parserEnigmaSpecArbitrary :: Parser EnigmaSpecArbitrary
+parserEnigmaSpecArbitrary
+   = strOption
+       (  long "arbitrary-config"
+       <> short 'a'
+       <> metavar "<ConfigFile>"
+       <> help arbitraryHelp
+       )
+
 type EnigmaSpecFile = FilePath
 
 configHelp :: String
-configHelp = "ini file"
+configHelp = "configuration file"
 
 parserEnigmaSpecFile :: Parser EnigmaSpecFile
 parserEnigmaSpecFile

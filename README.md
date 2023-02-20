@@ -113,9 +113,18 @@ The `enigma` can be run with the following command line options:
   - `-r,--reflector <SerialNumber>` - reflectors serial number
   - `-s,--init-state <StateNumber>` - initial state of the Enigma Machine
   - `-c,--config-file <ConfigFile>` - configuration file
+  - `-a,--arbitrary-config <ConfigFile>` - generate configuration file save it to <ConfigFile> and use it for encryption
   - `-i,--input-file <InputFile>` - input file, default is stdin
   - `-o,--output-file <OutputFile>` - output file, default is stdout
   - `-h,--help` - show help text
+
+Notice that `-a` option is useful only for encryption, since it's going to generate a new parameter values every time it's being specified. For decryption you would want to use the `-c` option to read auto-generated configuration.
+
+```
+enigma -a arbitrary.c -i t/iliad.txt -o t/iliad.txt.enc 
+enigma -c arbitrary.c -i t/iliad.txt.enc -o t/iliad.txt.dec
+diff t/iliad.txt t/iliad.txt.dec
+```
 
 ### Configuration file syntax
 
