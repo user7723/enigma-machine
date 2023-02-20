@@ -127,15 +127,13 @@ Configuration file must contain at least one specification for each of these par
 
 The parameters may occur in any order and in any non-zero amount, but only the first occurence will be taken into account.
 
-Concrete example can be found in the `enigma.conf`
+Concrete example can be found in the `enigma.c`
 
 ```
 ConfigFile
   = <Permutation Rotors    , {Rotors}
                , Reflector , {Reflector}
                , State     , {State} >
-
-Parameter = Rotors | Reflector | State
 
 Rotors
   = Space , ("rotors" | "ro")
